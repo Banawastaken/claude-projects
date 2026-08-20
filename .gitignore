@@ -1,0 +1,10 @@
+# Market data caches and derived datasets are large and reproducible via
+# src/fetch_candles.py + src/clean_data.py
+data/raw/
+data/candles/
+data/*.parquet
+data/*.csv
+
+logs/
+__pycache__/
+*.pyc
