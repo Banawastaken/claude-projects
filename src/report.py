@@ -124,11 +124,17 @@ def plot_journey(name, stages, mkt, rules, path):
     for t in leg.get_texts():
         t.set_color(FG)
 
-    # drawdown panel
-    peak = jf["cumulative"].cummax()
-    dd = (jf["cumulative"] - peak) / peak * 100
-    ax2.fill_between(jf["ts"], dd, 0, color=RED, alpha=0.45)
-    ax2.plot(jf["ts"], dd, color=RED, linewidth=0.8)
+    # Drawdown panel, computed within each stage. Measuring it across the whole
+    # journey would read the reset to $6,000 at the start of Phase 2 as an
+    # instant 7% drawdown, which never happened.
+    for st in stages:
+        seg = jf[jf["stage"] == st.name]
+        if seg.empty:
+            continue
+        peak = seg["cumulative"].cummax()
+        dd = (seg["cumulative"] - peak) / peak * 100
+        ax2.fill_between(seg["ts"], dd, 0, color=RED, alpha=0.45)
+        ax2.plot(seg["ts"], dd, color=RED, linewidth=0.8)
     ax2.axhline(-rules.max_loss * 100, color=RED, linestyle="--", linewidth=1.0)
     ax2.set_ylabel("drawdown %")
     ax2.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
@@ -171,13 +177,15 @@ def plot_funded_only(name, stages, mkt, rules, path):
                     xytext=(0, 12), textcoords="offset points", color=AMBER, fontsize=8,
                     ha="center")
 
+    n = len(st.payouts)
+    tail = (f"{n} payout{'s' if n != 1 else ''}, ${total:,.0f} net to trader"
+            if n else "no payout earned")
     ax.set_title(
-        f"{name} - funded account performance after passing "
-        f"({len(st.payouts)} payouts, ${total:,.0f} net to trader)",
+        f"{name} - funded account performance after passing ({tail})",
         fontsize=12, pad=12,
     )
     ax.set_ylabel("USD")
-    leg = ax.legend(loc="upper left", fontsize=9, facecolor=BG, edgecolor=GRID)
+    leg = ax.legend(loc="lower left", fontsize=9, facecolor=BG, edgecolor=GRID)
     for t in leg.get_texts():
         t.set_color(FG)
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b %Y"))

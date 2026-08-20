@@ -96,6 +96,11 @@ def main():
     results = []
     summary = {}
     os.makedirs(REPORTS, exist_ok=True)
+    # Clear charts from previous runs. A stale funded-account chart for a
+    # strategy that no longer reaches the funded stage is worse than no chart.
+    for stale in os.listdir(REPORTS):
+        if stale.endswith(".png"):
+            os.remove(os.path.join(REPORTS, stale))
 
     for cls in F.FINAL:
         attempts = run_until_funded(mkt, cls, rules, i0, i1)

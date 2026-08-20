@@ -96,13 +96,18 @@ class Base:
             return False
         return self.in_session(i, mkt)
 
-    # Risk by stage. Failing a challenge costs the fee; losing a funded account
+    # Risk by stage. Failing a challenge costs $59.99; losing a funded account
     # costs the income stream it was bought to produce, so the two stages do not
-    # deserve the same risk. Pushing harder in the phases also gets the account
-    # funded sooner, which matters more than it looks: in the 2026 test the
-    # strategies spent their good months grinding through Phase 1 and Phase 2
-    # and only reached the funded stage in time for the bad ones.
-    stage_risk = {"phase1": 1.35, "phase2": 1.35, "funded": 0.70}
+    # deserve the same risk. Pushing harder in the phases also reaches the funded
+    # stage sooner, which matters more than it looks: in the 2026 test the
+    # strategies spent their good months grinding through Phase 1 and Phase 2 and
+    # arrived at the funded stage just in time for the bad ones.
+    #
+    # Chosen on 19 development starts over a 205-day horizon. Summed mean payout
+    # across the four accounts: flat $1,559, push $1,963, push-then-ease $1,810.
+    # Easing off once funded looked sensible but measured worse -- it shrinks the
+    # winners without improving survival enough to pay for them.
+    stage_risk = {"phase1": 1.35, "phase2": 1.35, "funded": 1.0}
 
     def risk_for(self, ctx) -> float:
         r = self.risk_pct * self.stage_risk.get(ctx.stage, 1.0)

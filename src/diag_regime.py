@@ -70,9 +70,13 @@ if __name__ == "__main__":
     mkt = Market(df)
     i0, i1 = slice_period(df, "2025-02-01", None)
 
+    out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "reports")
+    os.makedirs(out_dir, exist_ok=True)
+
     reg = regime_table(mkt, df)
     print("Gold regime by month (efficiency: 1.0 = clean trend, 0 = pure chop)\n")
     print(reg.round(2).to_string())
+    reg.to_csv(os.path.join(out_dir, "regime_monthly.csv"))
 
     print("\n\nMonthly expectancy in R per strategy (limits off)\n")
     frames = {}
@@ -84,6 +88,7 @@ if __name__ == "__main__":
     tbl = pd.DataFrame(frames)
     tbl["n_pos"] = (tbl > 0).sum(axis=1)
     print(tbl.round(2).to_string())
+    tbl.to_csv(os.path.join(out_dir, "strategy_monthly.csv"))
 
     dev = tbl.loc[tbl.index < pd.Period("2025-12", "M")]
     test = tbl.loc[tbl.index >= pd.Period("2025-12", "M")]
