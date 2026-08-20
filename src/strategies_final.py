@@ -19,10 +19,16 @@ surrenders 24% of every R while a $25 stop surrenders 3%.
 from __future__ import annotations
 
 from strategies_v2 import DonchianV2, PullbackV2
-from strategies_v3 import KeltnerBreak
 from strategies_v4 import DonchianH4
+from strategies_v5 import AlignedMomentum
 
-RISK = 0.0075  # per-trade risk used by all four unless overridden
+# Per-trade risk was chosen per strategy on the development window by funded
+# rate and, more importantly, by survival once funded. Risk is not a free
+# parameter here: the H4 channel gets funded slightly more often at 1.00% but
+# only 16-32% of those funded accounts were still alive at the end, against
+# 82-100% at 0.75%. Passing the challenge is not the goal; keeping the account
+# is.
+RISK = 0.0075
 
 
 class A1_DonchianH1(DonchianV2):
@@ -38,7 +44,7 @@ class A1_DonchianH1(DonchianV2):
     max_losses_day = 2
     trail_start_r = 2.0
     trail_dist_r = 1.3
-    risk_pct = RISK
+    risk_pct = 0.0100  # best funded rate on dev with no loss of survival
 
 
 class A2_TrendPullback(PullbackV2):
@@ -56,12 +62,20 @@ class A2_TrendPullback(PullbackV2):
 
 
 class A3_DonchianH4(DonchianH4):
-    """Same channel logic on a slower clock, so entries spread out in time."""
+    """Same channel logic on a slower clock, so entries spread out in time.
+
+    Originally set to a 10-bar channel with a 6R target, which looked fine over
+    a 150-day horizon (86% of funded accounts still alive). Extending the
+    horizon to 205 days showed those accounts blowing up later: 53% alive at
+    0.75% risk and none at all at 1.00%. It was getting funded and then giving
+    it back. The 20-bar channel with a 4R target survives at 100% over the same
+    horizon, so the slot uses that instead.
+    """
 
     name = "A3 Donchian H4 Swing"
-    lookback = 10
+    lookback = 20
     atr_mult = 1.0
-    tp_r = 6.0
+    tp_r = 4.0
     adx_min = 15
     max_trades_day = 1
     max_losses_day = 1
@@ -70,14 +84,25 @@ class A3_DonchianH4(DonchianH4):
     risk_pct = RISK
 
 
-class A4_Keltner(KeltnerBreak):
-    """Volatility-band expansion: fires on acceleration, not on a new extreme."""
+class A4_AlignedMomentum(AlignedMomentum):
+    """Trades only when H1, H4 and D1 all agree. Flat most of the time.
 
-    name = "A4 Keltner Band Expansion"
-    band_k = 2.5
-    atr_mult = 3.0
-    tp_r = 5.0
-    adx_min = 0
+    This slot went through three occupants. Keltner band expansion had a decent
+    raw edge (PF 1.48) but passed Phase 1 in only 64% of development starts, and
+    displacement-from-open never got funded at all; both were dropped.
+
+    A slower H4 channel actually scored best of everything tested here (funded
+    100%, all still alive), but it is the same signal as A3 on a slightly
+    different lookback, so putting it on the fourth account would have bought
+    almost no diversification. This is the only non-channel-breakout signal that
+    survived the rules, so it takes the slot at a small cost in robustness.
+    """
+
+    name = "A4 Multi-Timeframe Aligned Momentum"
+    atr_mult = 2.5
+    tp_r = 4.0
+    adx_min = 25
+    break_bars = 8
     max_trades_day = 2
     max_losses_day = 2
     trail_start_r = 2.0
@@ -85,4 +110,4 @@ class A4_Keltner(KeltnerBreak):
     risk_pct = RISK
 
 
-FINAL = [A1_DonchianH1, A2_TrendPullback, A3_DonchianH4, A4_Keltner]
+FINAL = [A1_DonchianH1, A2_TrendPullback, A3_DonchianH4, A4_AlignedMomentum]

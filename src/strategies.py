@@ -32,9 +32,35 @@ class Base:
     def prepare(self, mkt):
         raise NotImplementedError
 
+    # Equity-curve risk throttle: scale risk down off the strategy's own recent
+    # results. Measured and REJECTED -- it was near-neutral on the 2026 test
+    # window and clearly negative on development data (A1 fell from 7 payouts
+    # totalling $611 to 2 totalling $466, and its funded account died). A
+    # 10-trade window fires too late to dodge a bad regime and then holds size
+    # down through the recovery. Left disabled and documented rather than
+    # deleted, so it does not get reinvented later.
+    throttle_window = 10
+    throttle_levels = ()  # (rolling R below, risk multiple); empty = disabled
+
     def reset(self):
         self._cooloff = False
         self._last_consec = 0
+        self._recent_r = []
+
+    def on_trade(self, tr):
+        if tr.risk_usd > 0:
+            self._recent_r.append(tr.pnl / tr.risk_usd)
+            if len(self._recent_r) > self.throttle_window:
+                self._recent_r.pop(0)
+
+    def throttle(self) -> float:
+        if len(self._recent_r) < self.throttle_window:
+            return 1.0
+        rolling = sum(self._recent_r)
+        for threshold, mult in self.throttle_levels:
+            if rolling < threshold:
+                return mult
+        return 1.0
 
     def on_new_day(self, i, mkt):
         self._cooloff = False  # a cool-off lasts to the end of the day only
@@ -70,8 +96,16 @@ class Base:
             return False
         return self.in_session(i, mkt)
 
+    # Risk by stage. Failing a challenge costs the fee; losing a funded account
+    # costs the income stream it was bought to produce, so the two stages do not
+    # deserve the same risk. Pushing harder in the phases also gets the account
+    # funded sooner, which matters more than it looks: in the 2026 test the
+    # strategies spent their good months grinding through Phase 1 and Phase 2
+    # and only reached the funded stage in time for the bad ones.
+    stage_risk = {"phase1": 1.35, "phase2": 1.35, "funded": 0.70}
+
     def risk_for(self, ctx) -> float:
-        r = self.risk_pct
+        r = self.risk_pct * self.stage_risk.get(ctx.stage, 1.0)
         # Target already banked and only the minimum-trading-days requirement
         # left: trade token size rather than risk the pass to tick a box.
         if ctx.target_balance and ctx.balance >= ctx.target_balance:
@@ -85,6 +119,7 @@ class Base:
             r *= 0.60
         if cushion < 0.35:
             r *= 0.50
+        r *= self.throttle()
         return max(r, 0.0015)
 
     def manage(self, pos, i, mkt, rules):

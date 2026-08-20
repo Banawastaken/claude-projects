@@ -195,16 +195,12 @@ def plot_portfolio(results, mkt, rules, path):
     fig.patch.set_facecolor(BG)
     _style(ax)
     palette = [ACCENT, PURPLE, GREEN, AMBER]
-    combined = None
     for (name, stages), col in zip(results, palette):
         jf = journey_frame(stages, mkt, rules.initial_balance)
         if jf.empty:
             continue
         ax.plot(jf["ts"], jf["cumulative"] - rules.initial_balance, color=col,
                 linewidth=1.3, label=name, alpha=0.9)
-        s = jf.set_index("ts")["cumulative"] - rules.initial_balance
-        s = s[~s.index.duplicated()]
-        combined = s if combined is None else combined.add(s, fill_value=None)
     ax.axhline(0, color=FG, linewidth=0.9, alpha=0.5)
     ax.set_ylabel("net profit per account (USD)")
     ax.set_title("All four accounts, Dec 2025 - Aug 2026", fontsize=12, pad=12)

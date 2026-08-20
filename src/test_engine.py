@@ -126,7 +126,9 @@ def test_daily_loss_breach():
     mkt = make_market(c)
     r = Rules(slip_entry=0.0, slip_stop=250.0, commission_per_lot=0.0,
               daily_loss=0.05, max_loss=0.10, max_spread=5)
-    strat = OneShot(at=3, sl=120.0, tp=5000.0, risk=0.05)
+    # 0.01 lots on a 75-wide stop risks exactly the $75 ceiling; the 250 of
+    # slippage past the stop is what carries it through the daily floor
+    strat = OneShot(at=3, sl=75.0, tp=5000.0, risk=0.0125)
     st = run_stage(mkt, strat, r, 0, 20, "phase1", 6000.0, 0.08, 6000.0)
     assert st.trades, "test setup: no trade was taken"
     assert st.breached, "expected a breach"
@@ -145,12 +147,36 @@ def test_stop_caps_the_breach():
     mkt = make_market(c)
     r = Rules(slip_entry=0.0, slip_stop=0.0, commission_per_lot=0.0,
               daily_loss=0.05, max_loss=0.10, max_spread=5)
-    strat = OneShot(at=3, sl=20.0, tp=5000.0, risk=0.005)
+    # sl 30 with 0.5% of $6,000 sizes to exactly 0.01 lots, so the
+    # over-risk guard has nothing to complain about
+    strat = OneShot(at=3, sl=30.0, tp=5000.0, risk=0.005)
     st = run_stage(mkt, strat, r, 0, 20, "phase1", 6000.0, 0.08, 6000.0)
     assert st.trades, "test setup: no trade was taken"
     assert not st.breached, f"stop should have capped the loss, got {st.breach_reason}"
     assert st.trades[0].reason == "sl"
     print("  stop caps loss before the floor          OK")
+
+
+def test_rejects_untradeable_size():
+    """If 0.01 lots over-risks by too much, the trade must be skipped.
+
+    This is the high-volatility case: once an ATR-scaled stop is wide enough,
+    the minimum lot already risks more than intended, and taking the trade
+    anyway over-risks exactly when the market is most dangerous.
+    """
+    mkt = make_market([2000.0] * 40)
+    r = Rules(slip_entry=0.0, slip_stop=0.0, commission_per_lot=0.0, max_spread=5,
+              max_trade_risk_pct=0.0125)
+    # ceiling is $75 on a $6,000 account; a 100-wide stop risks $100 at 0.01 lots
+    strat = OneShot(at=5, sl=100.0, tp=500.0, risk=0.005)
+    st = run_stage(mkt, strat, r, 0, 40, "funded", 6000.0, None, 6000.0)
+    assert not st.trades, "expected the oversized trade to be skipped"
+
+    # the same setup is fine once the stop is narrow enough to size correctly
+    strat2 = OneShot(at=5, sl=30.0, tp=500.0, risk=0.005)
+    st2 = run_stage(mkt, strat2, r, 0, 40, "funded", 6000.0, None, 6000.0)
+    assert st2.trades, "a correctly sizeable trade should still be taken"
+    print("  skips trades too big to size             OK")
 
 
 def test_static_floor_does_not_trail():
@@ -195,6 +221,7 @@ if __name__ == "__main__":
         test_stop_wins_ties,
         test_daily_loss_breach,
         test_stop_caps_the_breach,
+        test_rejects_untradeable_size,
         test_static_floor_does_not_trail,
         test_short_pays_spread_on_exit,
         test_position_size_matches_risk,

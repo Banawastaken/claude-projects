@@ -43,6 +43,14 @@ class Rules:
     # Gold's normal spread on this feed is ~0.60, so this blocks genuine
     # spikes (news, rollover) rather than normal conditions.
     max_spread: float = 1.10
+    # The broker's minimum trade is 0.01 lots, worth $1 per $1 of gold move.
+    # Once volatility widens an ATR-scaled stop past ~$75, that minimum lot
+    # alone risks more than 1.25% of a $6K account, so the account silently
+    # over-risks exactly when the market is most dangerous. Rather than compare
+    # against the intended risk (which rejects trades that are only slightly
+    # oversized), enforce a hard ceiling on what any single trade may risk.
+    max_trade_risk_pct: float = 0.0125
+    min_lot: float = 0.01
     day_boundary_utc_hour: int = 21  # 00:00 EEST
 
 
@@ -228,6 +236,7 @@ def run_stage(
             reason=reason,
         )
         trades.append(tr)
+        strategy.on_trade(tr)
         traded_days.add(mkt.trade_day(i, rules.day_boundary_utc_hour))
         if portion >= 1.0:
             trades_today += 1
@@ -366,11 +375,18 @@ def run_stage(
                     # flooring systematically under-risks (often by ~40% once
                     # the stop is wide), which quietly slows every challenge.
                     raw_lots = risk_usd / (sl_dist * CONTRACT)
-                    lots = max(np.round(raw_lots * 100) / 100.0, 0.01)
+                    lots = max(np.round(raw_lots * 100) / 100.0, rules.min_lot)
                     # but never let the rounding push us past a hard cap
                     if lots * sl_dist * CONTRACT > min(cap, room_daily, room_total):
                         lots = np.floor(raw_lots * 100) / 100.0
-                    if lots >= 0.01:
+                    # Refuse a trade the account is too small to size properly:
+                    # if even the minimum lot risks more than the ceiling, this
+                    # setup is untradeable at this account size. This is a
+                    # question about the smallest possible position, not about
+                    # the intended risk, so it is checked against min_lot.
+                    if rules.min_lot * sl_dist * CONTRACT > equity_now * rules.max_trade_risk_pct:
+                        lots = 0.0
+                    if lots >= rules.min_lot:
                         pos = Position(
                             direction=direction,
                             entry=entry,

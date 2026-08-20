@@ -53,6 +53,35 @@ def stage_row(name, st, rules):
     }
 
 
+def run_until_funded(mkt, cls, rules, i0, i1, max_attempts=6):
+    """Run the challenge, restarting after a breach the way a real trader would.
+
+    The firm marks this account type "Reset Applicable: Yes", so a blown
+    challenge is a fee, not the end. This returns every attempt, so the report
+    can state both whether the strategy got funded and what it cost to get there.
+    """
+    from engine import run_challenge
+
+    attempts = []
+    start = i0
+    while start < i1 and len(attempts) < max_attempts:
+        strat = cls()
+        stages = run_challenge(mkt, strat, rules, start, i1)
+        attempts.append(stages)
+        if len(stages) > 2:  # reached the funded stage
+            break
+        last = stages[-1]
+        if not last.breached:
+            break  # ran out of data rather than failing
+        # a reset starts the next day
+        nxt = last.end_idx + 1
+        while nxt < i1 and mkt.ts[nxt].astype("datetime64[D]") == \
+                mkt.ts[last.end_idx].astype("datetime64[D]"):
+            nxt += 1
+        start = nxt
+    return attempts
+
+
 def main():
     from engine import run_challenge
 
@@ -69,10 +98,18 @@ def main():
     os.makedirs(REPORTS, exist_ok=True)
 
     for cls in F.FINAL:
-        strat = cls()
-        stages = run_challenge(mkt, strat, rules, i0, i1)
+        attempts = run_until_funded(mkt, cls, rules, i0, i1)
+        stages = attempts[-1]  # the attempt that got furthest
         results.append((cls.name, stages))
         print(f"=== {cls.name}  (risk {cls.risk_pct:.2%}/trade)")
+        if len(attempts) > 1:
+            print(f"   note: {len(attempts) - 1} reset(s) after a failed attempt "
+                  f"(fee ${59.99 * (len(attempts) - 1):,.2f}); "
+                  f"stages below are the final attempt")
+            for a_i, a in enumerate(attempts[:-1]):
+                bad = a[-1]
+                print(f"     attempt {a_i + 1}: {bad.name} breached "
+                      f"({bad.breach_reason}) after {bad.calendar_days:.0f} days")
         for st in stages:
             r = stage_row(cls.name, st, rules)
             rows.append(r)
@@ -89,6 +126,8 @@ def main():
         summary[cls.name] = {
             "reached_funded": got_funded,
             "risk_pct": cls.risk_pct,
+            "attempts": len(attempts),
+            "reset_fees_usd": round(59.99 * (len(attempts) - 1), 2),
             "stages": [stage_row(cls.name, s, rules) for s in stages],
         }
         p = plot_journey(cls.name, stages, mkt, rules,
