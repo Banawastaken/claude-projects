@@ -55,7 +55,10 @@ UNIVERSE = [
     Instrument("EURAUD", "EURAUD", "forex", FX * 0.65, (1.55, 1.95), 5.0, leverage=30),
 
     # ---- metals (contract 100, silver 5,000; 0.0016% of notional) ---------
-    Instrument("XAUUSD", "XAUUSD", "metal", 100.0, (2400.0, 5800.0),
+    # Range spans 2015-2026: gold traded near $1,050 in 2015 and $5,600 in 2026.
+    # It only has to be tight enough to pick the divisor (1,000 here) uniquely
+    # out of the powers of ten, not to be a forecast.
+    Instrument("XAUUSD", "XAUUSD", "metal", 100.0, (900.0, 6000.0),
                commission_pct_notional=0.000016),
     Instrument("XAGUSD", "XAGUSD", "metal", 5000.0, (20.0, 90.0),
                commission_pct_notional=0.000016),

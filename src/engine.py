@@ -67,6 +67,11 @@ class Rules:
     # profit hurdle and still be blocked by the consistency check.
     payout_min_growth: float = 0.02
     payout_max_day_share: float = 0.40
+    # Days to wait before the first reward request and between later ones. The
+    # firm's floor is 21 then 14, but withdrawing that early is what fails the
+    # consistency check: at three weeks the profit sits in one or two trades.
+    payout_first_days: int = 21
+    payout_next_days: int = 14
 
 
 @dataclass
@@ -515,7 +520,7 @@ def run_challenge(mkt: Market, strategy, rules: Rules, start_idx: int, end_idx: 
     funded = run_stage(
         mkt, strategy, rules, p2.end_idx + 1, end_idx, "funded",
         rules.initial_balance, None, rules.initial_balance,
-        payout_days=(21, 14),
+        payout_days=(rules.payout_first_days, rules.payout_next_days),
     )
     stages.append(funded)
     return stages

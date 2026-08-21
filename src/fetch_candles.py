@@ -35,7 +35,7 @@ CACHE = os.path.join(HERE, "..", "data", "candles")
 OUT = os.path.join(HERE, "..", "data")
 
 _local = threading.local()
-_gate = threading.Semaphore(5)
+_gate = threading.Semaphore(10)
 _cooldown_until = [0.0]
 _cd_lock = threading.Lock()
 FAILED: list = []
@@ -172,7 +172,7 @@ def day_frame(day: dt.date):
     )
 
 
-def build(start: dt.date, end: dt.date, workers: int = 5) -> pd.DataFrame:
+def build(start: dt.date, end: dt.date, workers: int = 10) -> pd.DataFrame:
     days = []
     d = start
     while d < end:
