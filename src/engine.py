@@ -38,11 +38,19 @@ class Rules:
     max_open_risk: float = 0.03  # enforced in the funded stage
     profit_split: float = 0.95
     commission_per_lot: float = 7.0  # round-turn USD per 1.0 lot
-    slip_entry: float = 0.05  # price units of adverse slippage on market entry
-    slip_stop: float = 0.15  # price units of adverse slippage on a stop-out
-    # Gold's normal spread on this feed is ~0.60, so this blocks genuine
-    # spikes (news, rollover) rather than normal conditions.
-    max_spread: float = 1.10
+    # Contract size in units per 1.00 lot, quoted in the instrument's price
+    # units: gold is 100 oz, so a $1.00 move is $100 per lot. Forex is 100,000,
+    # index CFDs are 10 per point, silver is 5,000.
+    contract_size: float = 100.0
+    # Slippage as a multiple of the spread actually measured on that bar, rather
+    # than in absolute price units. An absolute figure cannot travel between
+    # instruments -- 0.05 is eight cents of gold but five hundred pips of EURUSD.
+    slip_entry_spread: float = 0.10
+    slip_stop_spread: float = 0.30
+    # Skip entries when the spread is this many times the instrument's own
+    # median, which blocks news and rollover spikes on any instrument without
+    # needing a hand-set absolute threshold per symbol.
+    max_spread_mult: float = 1.8
     # The broker's minimum trade is 0.01 lots, worth $1 per $1 of gold move.
     # Once volatility widens an ATR-scaled stop past ~$75, that minimum lot
     # alone risks more than 1.25% of a $6K account, so the account silently
@@ -153,6 +161,10 @@ class Market:
             self.ah = self.h + self.spread
             self.al = self.l + self.spread
             self.ac = self.c + self.spread
+        # Typical spread for this instrument, used to scale the spike filter
+        # and slippage so neither needs a per-symbol constant.
+        self.median_spread = float(np.median(self.spread[self.spread > 0])) \
+            if np.any(self.spread > 0) else 0.0
         # calendar helpers
         hours = df["ts"].dt.hour.values
         self.hour = hours
@@ -214,9 +226,9 @@ def run_stage(
         nonlocal balance, pos, trades_today, losses_today, consec_losses
         lots = pos.lots * portion
         if pos.direction > 0:
-            pnl = (price - pos.entry) * CONTRACT * lots
+            pnl = (price - pos.entry) * rules.contract_size * lots
         else:
-            pnl = (pos.entry - price) * CONTRACT * lots
+            pnl = (pos.entry - price) * rules.contract_size * lots
         pnl -= rules.commission_per_lot * lots
         balance += pnl
         tr = Trade(
@@ -228,7 +240,7 @@ def run_stage(
             tp=pos.tp,
             lots=lots,
             tag=pos.tag,
-            risk_usd=pos.init_risk * CONTRACT * lots,
+            risk_usd=pos.init_risk * rules.contract_size * lots,
             idx_out=i,
             ts_out=mkt.ts[i],
             exit=price,
@@ -255,8 +267,8 @@ def run_stage(
         if pos is None:
             return 0.0
         if pos.direction > 0:
-            return (i_price_bid - pos.entry) * CONTRACT * pos.lots
-        return (pos.entry - i_price_ask) * CONTRACT * pos.lots
+            return (i_price_bid - pos.entry) * rules.contract_size * pos.lots
+        return (pos.entry - i_price_ask) * rules.contract_size * pos.lots
 
     i = start_idx
     while i < end_idx:
@@ -281,25 +293,26 @@ def run_stage(
         # bar's extreme. Ignoring that over-reports breaches.
         hit_sl = hit_tp = False
         if pos is not None:
+            slip_stop = rules.slip_stop_spread * mkt.spread[i]
             if pos.direction > 0:
                 hit_sl = mkt.l[i] <= pos.sl
                 hit_tp = mkt.h[i] >= pos.tp
-                worst_px = (pos.sl - rules.slip_stop) if hit_sl else mkt.l[i]
+                worst_px = (pos.sl - slip_stop) if hit_sl else mkt.l[i]
                 best_px = mkt.h[i]
             else:
                 hit_sl = mkt.ah[i] >= pos.sl
                 hit_tp = mkt.al[i] <= pos.tp
-                worst_px = (pos.sl + rules.slip_stop) if hit_sl else mkt.ah[i]
+                worst_px = (pos.sl + slip_stop) if hit_sl else mkt.ah[i]
                 best_px = mkt.al[i]
             eq_worst = balance + (
-                (worst_px - pos.entry) * CONTRACT * pos.lots
+                (worst_px - pos.entry) * rules.contract_size * pos.lots
                 if pos.direction > 0
-                else (pos.entry - worst_px) * CONTRACT * pos.lots
+                else (pos.entry - worst_px) * rules.contract_size * pos.lots
             )
             eq_best = balance + (
-                (best_px - pos.entry) * CONTRACT * pos.lots
+                (best_px - pos.entry) * rules.contract_size * pos.lots
                 if pos.direction > 0
-                else (pos.entry - best_px) * CONTRACT * pos.lots
+                else (pos.entry - best_px) * rules.contract_size * pos.lots
             )
         else:
             eq_worst = eq_best = balance
@@ -326,7 +339,7 @@ def run_stage(
         # ---- manage open position ----------------------------------------
         if pos is not None:
             if hit_sl:  # conservative: stop wins ties within the bar
-                px = pos.sl - rules.slip_stop * pos.direction
+                px = pos.sl - rules.slip_stop_spread * mkt.spread[i] * pos.direction
                 close_position(i, px, "sl")
             elif hit_tp:
                 close_position(i, pos.tp, "tp")
@@ -353,13 +366,14 @@ def run_stage(
             if sig is not None:
                 j = i + 1  # execute at next bar's open
                 direction, sl_dist, tp_dist, risk_pct, tag = sig
-                if mkt.spread[j] <= rules.max_spread:
+                if mkt.spread[j] <= rules.max_spread_mult * mkt.median_spread:
+                    slip_entry = rules.slip_entry_spread * mkt.spread[j]
                     if direction > 0:
-                        entry = mkt.ao[j] + rules.slip_entry
+                        entry = mkt.ao[j] + slip_entry
                         sl = entry - sl_dist
                         tp = entry + tp_dist
                     else:
-                        entry = mkt.o[j] - rules.slip_entry
+                        entry = mkt.o[j] - slip_entry
                         sl = entry + sl_dist
                         tp = entry - tp_dist
                     equity_now = balance
@@ -374,17 +388,17 @@ def run_stage(
                     # Round to the nearest 0.01 lot rather than flooring:
                     # flooring systematically under-risks (often by ~40% once
                     # the stop is wide), which quietly slows every challenge.
-                    raw_lots = risk_usd / (sl_dist * CONTRACT)
+                    raw_lots = risk_usd / (sl_dist * rules.contract_size)
                     lots = max(np.round(raw_lots * 100) / 100.0, rules.min_lot)
                     # but never let the rounding push us past a hard cap
-                    if lots * sl_dist * CONTRACT > min(cap, room_daily, room_total):
+                    if lots * sl_dist * rules.contract_size > min(cap, room_daily, room_total):
                         lots = np.floor(raw_lots * 100) / 100.0
                     # Refuse a trade the account is too small to size properly:
                     # if even the minimum lot risks more than the ceiling, this
                     # setup is untradeable at this account size. This is a
                     # question about the smallest possible position, not about
                     # the intended risk, so it is checked against min_lot.
-                    if rules.min_lot * sl_dist * CONTRACT > equity_now * rules.max_trade_risk_pct:
+                    if rules.min_lot * sl_dist * rules.contract_size > equity_now * rules.max_trade_risk_pct:
                         lots = 0.0
                     if lots >= rules.min_lot:
                         pos = Position(

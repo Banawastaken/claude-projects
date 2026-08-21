@@ -92,7 +92,7 @@ class Base:
             self._last_consec = ctx.consec_losses
         if self._cooloff:
             return False
-        if mkt.spread[i] > rules.max_spread:
+        if mkt.spread[i] > rules.max_spread_mult * mkt.median_spread:
             return False
         return self.in_session(i, mkt)
 

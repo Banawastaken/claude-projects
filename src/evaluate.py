@@ -123,10 +123,19 @@ _CACHE = {}
 
 
 def _market(tag):
+    """Market for a tag. 'INSTRUMENT:NAME' loads from the multi-CFD set."""
     if tag not in _CACHE:
-        from run import load
+        if tag.startswith("INSTRUMENT:"):
+            import pandas as _pd
 
-        df = load(tag)
+            name = tag.split(":", 1)[1]
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "..", "data", "instruments", f"{name}.parquet")
+            df = _pd.read_parquet(path).sort_values("ts").reset_index(drop=True)
+        else:
+            from run import load
+
+            df = load(tag)
         _CACHE[tag] = (Market(df), df)
     return _CACHE[tag]
 
@@ -141,8 +150,13 @@ def _one_run(args):
     cls = type(cls_name + "_v", (base,), dict(params)) if params else base
     mkt, _ = _market(tag)
     rules = Rules(**rule_over) if rule_over else Rules()
-    e = min(s + horizon_days * 1440, mkt.n)
-    if e - s < 20 * 1440:
+    # Horizon is a span of time, not a count of bars: the same code runs over
+    # minute bars for gold and hourly bars for the wider CFD study, so counting
+    # bars would silently shorten every hourly run to nothing.
+    t_end = mkt.ts[s] + np.timedelta64(horizon_days, "D")
+    e = int(np.searchsorted(mkt.ts, t_end))
+    e = min(max(e, s + 1), mkt.n)
+    if (mkt.ts[e - 1] - mkt.ts[s]) / np.timedelta64(1, "D") < 20:
         return None
     stages = run_challenge(mkt, cls(), rules, s, e)
     out = {
@@ -158,6 +172,12 @@ def _one_run(args):
         "funded_breach": (stages[2].breach_reason if len(stages) > 2 and stages[2].breached else ""),
         "payout": sum(p["net"] for p in stages[2].payouts) if len(stages) > 2 else 0.0,
         "n_payouts": len(stages[2].payouts) if len(stages) > 2 else 0,
+        # Risk profile across the whole journey, which is what decides whether a
+        # strategy is "safe" rather than merely profitable.
+        "max_dd": max(s.max_dd_pct for s in stages) * 100,
+        "worst_day": max(s.worst_daily_dd_pct for s in stages) * 100,
+        "breached": any(s.breached for s in stages),
+        "trades": sum(len(s.trades) for s in stages),
     }
     return out
 
@@ -189,6 +209,13 @@ def pass_rate_parallel(mod, cls_name, params, starts, horizon_days=150,
         "med_p2_days": d.loc[d["p2"], "p2_days"].median(),
         "avg_payout": d["payout"].mean(),
         "payout_when_funded": d.loc[d["funded"], "payout"].mean() if d["funded"].any() else 0.0,
+        "breach_rate": d["breached"].mean(),
+        "dd_med": d["max_dd"].median(),
+        "dd_p90": d["max_dd"].quantile(0.90),
+        "dd_max": d["max_dd"].max(),
+        "worstday_med": d["worst_day"].median(),
+        "worstday_max": d["worst_day"].max(),
+        "trades_med": d["trades"].median(),
         "breaches": breaches,
         "detail": d,
     }

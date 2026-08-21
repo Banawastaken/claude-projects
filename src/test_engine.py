@@ -15,7 +15,7 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from engine import CONTRACT, Market, Rules, run_stage  # noqa: E402
+from engine import Market, Rules, run_stage  # noqa: E402
 from strategies import Base  # noqa: E402
 
 
@@ -65,12 +65,12 @@ def approx(a, b, tol=1e-6):
 def test_execution_lag_and_entry_price():
     """Signal at bar i must fill at bar i+1's open, on the ask for a long."""
     mkt = make_market([2000.0] * 30)
-    r = Rules(slip_entry=0.05, slip_stop=0.0, commission_per_lot=0.0)
+    r = Rules(slip_entry_spread=0.10, slip_stop_spread=0.0, commission_per_lot=0.0)
     strat = OneShot(at=5)
     st = run_stage(mkt, strat, r, 0, 30, "funded", 6000.0, None, 6000.0)
     tr = st.trades[0]
     assert tr.idx_in == 6, f"entry bar {tr.idx_in}, expected 6"
-    expected = 2000.0 + 0.60 + 0.05  # ask + entry slippage
+    expected = 2000.0 + 0.60 + 0.10 * 0.60  # ask + slippage of 0.10 x spread
     assert approx(tr.entry, expected), f"entry {tr.entry}, expected {expected}"
     print("  execution lag + ask-side entry           OK")
 
@@ -78,13 +78,13 @@ def test_execution_lag_and_entry_price():
 def test_round_trip_cost():
     """A flat market must lose exactly spread + slippage + commission."""
     mkt = make_market([2000.0] * 60)
-    r = Rules(slip_entry=0.05, slip_stop=0.10, commission_per_lot=7.0, max_spread=5)
+    r = Rules(slip_entry_spread=0.10, slip_stop_spread=0.0, commission_per_lot=7.0, max_spread_mult=8)
     strat = OneShot(at=5, sl=1.0, tp=1000.0)  # stop 1.0 away, never reached in flat tape
     st = run_stage(mkt, strat, r, 0, 60, "funded", 6000.0, None, 6000.0)
     tr = st.trades[0]
     lots = tr.lots
     # exit at final close on the bid; entry was on the ask
-    expected = (2000.0 - (2000.0 + 0.60 + 0.05)) * CONTRACT * lots - 7.0 * lots
+    expected = (2000.0 - (2000.0 + 0.60 + 0.06)) * r.contract_size * lots - 7.0 * lots
     assert approx(tr.pnl, expected, 1e-6), f"pnl {tr.pnl}, expected {expected}"
     assert tr.pnl < 0, "a flat market round trip must lose money"
     print(f"  round-trip cost accounting               OK  (${tr.pnl:.2f} on {lots} lots)")
@@ -108,7 +108,7 @@ def test_stop_wins_ties():
     df.loc[8, "ask_high"] = 2025.0 + spread
     df.loc[8, "ask_low"] = 1988.0 + spread
     mkt = Market(df)
-    r = Rules(slip_entry=0.0, slip_stop=0.0, commission_per_lot=0.0, max_spread=5)
+    r = Rules(slip_entry_spread=0.0, slip_stop_spread=0.0, commission_per_lot=0.0, max_spread_mult=8)
     strat = OneShot(at=5, sl=10.0, tp=20.0, risk=0.005)
     st = run_stage(mkt, strat, r, 0, n, "funded", 6000.0, None, 6000.0)
     tr = st.trades[0]
@@ -124,8 +124,8 @@ def test_daily_loss_breach():
     """
     c = [2000.0] * 6 + [1700.0] * 14  # gap straight through the stop
     mkt = make_market(c)
-    r = Rules(slip_entry=0.0, slip_stop=250.0, commission_per_lot=0.0,
-              daily_loss=0.05, max_loss=0.10, max_spread=5)
+    r = Rules(slip_entry_spread=0.0, slip_stop_spread=400.0, commission_per_lot=0.0,
+              daily_loss=0.05, max_loss=0.10, max_spread_mult=8)
     # 0.01 lots on a 75-wide stop risks exactly the $75 ceiling; the 250 of
     # slippage past the stop is what carries it through the daily floor
     strat = OneShot(at=3, sl=75.0, tp=5000.0, risk=0.0125)
@@ -145,8 +145,8 @@ def test_stop_caps_the_breach():
     """
     c = [2000.0] * 6 + [1500.0] * 14  # violent move far beyond the stop
     mkt = make_market(c)
-    r = Rules(slip_entry=0.0, slip_stop=0.0, commission_per_lot=0.0,
-              daily_loss=0.05, max_loss=0.10, max_spread=5)
+    r = Rules(slip_entry_spread=0.0, slip_stop_spread=0.0, commission_per_lot=0.0,
+              daily_loss=0.05, max_loss=0.10, max_spread_mult=8)
     # sl 30 with 0.5% of $6,000 sizes to exactly 0.01 lots, so the
     # over-risk guard has nothing to complain about
     strat = OneShot(at=3, sl=30.0, tp=5000.0, risk=0.005)
@@ -165,7 +165,7 @@ def test_rejects_untradeable_size():
     anyway over-risks exactly when the market is most dangerous.
     """
     mkt = make_market([2000.0] * 40)
-    r = Rules(slip_entry=0.0, slip_stop=0.0, commission_per_lot=0.0, max_spread=5,
+    r = Rules(slip_entry_spread=0.0, slip_stop_spread=0.0, commission_per_lot=0.0, max_spread_mult=8,
               max_trade_risk_pct=0.0125)
     # ceiling is $75 on a $6,000 account; a 100-wide stop risks $100 at 0.01 lots
     strat = OneShot(at=5, sl=100.0, tp=500.0, risk=0.005)
@@ -190,12 +190,12 @@ def test_static_floor_does_not_trail():
 def test_short_pays_spread_on_exit():
     """Shorts enter on the bid and exit on the ask."""
     mkt = make_market([2000.0] * 40)
-    r = Rules(slip_entry=0.0, slip_stop=0.0, commission_per_lot=0.0, max_spread=5)
+    r = Rules(slip_entry_spread=0.0, slip_stop_spread=0.0, commission_per_lot=0.0, max_spread_mult=8)
     strat = OneShot(at=5, direction=-1, sl=1.0, tp=1000.0)
     st = run_stage(mkt, strat, r, 0, 40, "funded", 6000.0, None, 6000.0)
     tr = st.trades[0]
     assert approx(tr.entry, 2000.0), f"short entry {tr.entry} should be the bid"
-    expected = (2000.0 - (2000.0 + 0.60)) * CONTRACT * tr.lots
+    expected = (2000.0 - (2000.0 + 0.60)) * r.contract_size * tr.lots
     assert approx(tr.pnl, expected), f"pnl {tr.pnl}, expected {expected}"
     print("  short side quoting                       OK")
 
@@ -203,12 +203,12 @@ def test_short_pays_spread_on_exit():
 def test_position_size_matches_risk():
     """Lots must put the intended risk at the stop, within rounding."""
     mkt = make_market([2000.0] * 40)
-    r = Rules(slip_entry=0.0, slip_stop=0.0, commission_per_lot=0.0, max_spread=5)
+    r = Rules(slip_entry_spread=0.0, slip_stop_spread=0.0, commission_per_lot=0.0, max_spread_mult=8)
     strat = OneShot(at=5, sl=20.0, tp=100.0, risk=0.01)
     st = run_stage(mkt, strat, r, 0, 40, "funded", 6000.0, None, 6000.0)
     tr = st.trades[0]
-    risk_usd = 20.0 * CONTRACT * tr.lots
-    assert abs(risk_usd - 60.0) <= 20.0 * CONTRACT * 0.005 + 1e-9, f"risk {risk_usd}"
+    risk_usd = 20.0 * r.contract_size * tr.lots
+    assert abs(risk_usd - 60.0) <= 20.0 * r.contract_size * 0.005 + 1e-9, f"risk {risk_usd}"
     print(f"  position sizing                          OK  ({tr.lots} lots = ${risk_usd:.2f})")
 
 
