@@ -60,6 +60,13 @@ class Rules:
     max_trade_risk_pct: float = 0.0125
     min_lot: float = 0.01
     day_boundary_utc_hour: int = 21  # 00:00 EEST
+    # Payout gates on the funded account. FundedNext requires at least 2%
+    # account growth to request a reward, and applies a 40% consistency rule at
+    # that moment: the best single day may not exceed 40% of the profit being
+    # withdrawn. A low-frequency strategy with large winners can clear the
+    # profit hurdle and still be blocked by the consistency check.
+    payout_min_growth: float = 0.02
+    payout_max_day_share: float = 0.40
 
 
 @dataclass
@@ -218,6 +225,7 @@ def run_stage(
     payouts: list[dict] = []
     last_payout_idx = start_idx
     payout_balance_mark = start_balance
+    cycle_day_pnl: dict = {}  # realised P&L per day within the current payout cycle
     next_payout_days = payout_days[0] if payout_days else None
 
     strategy.reset()
@@ -249,6 +257,8 @@ def run_stage(
         )
         trades.append(tr)
         strategy.on_trade(tr)
+        d_key = mkt.trade_day(i, rules.day_boundary_utc_hour)
+        cycle_day_pnl[d_key] = cycle_day_pnl.get(d_key, 0.0) + pnl
         traded_days.add(mkt.trade_day(i, rules.day_boundary_utc_hour))
         if portion >= 1.0:
             trades_today += 1
@@ -432,8 +442,14 @@ def run_stage(
         # ---- funded payouts -------------------------------------------------
         if payout_days is not None and pos is None:
             elapsed = (mkt.ts[i] - mkt.ts[last_payout_idx]) / np.timedelta64(1, "D")
-            if elapsed >= next_payout_days and balance > payout_balance_mark:
-                gross = balance - payout_balance_mark
+            gross = balance - payout_balance_mark
+            # Both firm gates must clear: enough growth to request a reward at
+            # all, and no single day carrying too much of it.
+            enough = gross >= rules.initial_balance * rules.payout_min_growth
+            best_day = max(cycle_day_pnl.values()) if cycle_day_pnl else 0.0
+            consistent = (gross > 0
+                          and best_day <= rules.payout_max_day_share * gross)
+            if elapsed >= next_payout_days and enough and consistent:
                 net = gross * rules.profit_split
                 payouts.append(
                     {
@@ -441,12 +457,14 @@ def run_stage(
                         "gross": gross,
                         "net": net,
                         "balance_before": balance,
+                        "best_day_share": best_day / gross if gross > 0 else 0.0,
                     }
                 )
                 balance -= gross  # profits withdrawn, back to base
                 payout_balance_mark = balance
                 last_payout_idx = i
                 next_payout_days = payout_days[1]
+                cycle_day_pnl.clear()  # consistency is judged per payout cycle
 
         i += 1
 
