@@ -127,16 +127,24 @@ class Base:
         r *= self.throttle()
         return max(r, 0.0015)
 
+    # Break-even lock as a fraction of R rather than an absolute price. The
+    # original 0.10 was ten cents of gold, which is a token amount, but a
+    # thousand pips of EURUSD -- on a short it put the stop far into profit and
+    # every "stop-out" booked a large win. Absolute price offsets never travel
+    # between instruments; the same mistake once lived in the slippage model.
+    base_be_lock_r = 0.05
+
     def manage(self, pos, i, mkt, rules):
-        """Default: break-even at +1R, then trail at 1.5R behind the extreme."""
+        """Default: break-even at +1R, then trail at 1.8R behind the close."""
         risk = pos.init_risk
         if risk <= 0:
             return
+        lock = self.base_be_lock_r * risk
         if pos.direction > 0:
             gain = mkt.c[i] - pos.entry
             r_mult = gain / risk
             if r_mult >= 1.0 and not pos.be_moved:
-                pos.sl = max(pos.sl, pos.entry + 0.10)
+                pos.sl = max(pos.sl, pos.entry + lock)
                 pos.be_moved = True
             if r_mult >= 1.8:
                 pos.sl = max(pos.sl, mkt.c[i] - 0.9 * risk)
@@ -144,7 +152,7 @@ class Base:
             gain = pos.entry - mkt.ac[i]
             r_mult = gain / risk
             if r_mult >= 1.0 and not pos.be_moved:
-                pos.sl = min(pos.sl, pos.entry - 0.10)
+                pos.sl = min(pos.sl, pos.entry - lock)
                 pos.be_moved = True
             if r_mult >= 1.8:
                 pos.sl = min(pos.sl, mkt.ac[i] + 0.9 * risk)

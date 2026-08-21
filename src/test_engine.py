@@ -200,6 +200,56 @@ def test_short_pays_spread_on_exit():
     print("  short side quoting                       OK")
 
 
+def test_no_absolute_price_offsets_in_management():
+    """The default stop management must scale with the instrument.
+
+    A break-even lock written as an absolute price is ten cents of gold and a
+    thousand pips of EURUSD. When that happened, the short-side lock landed far
+    inside profit and every stop-out booked a win. This runs the same trade at
+    two price scales and requires the same R outcome.
+    """
+    class Runner(Base):
+        name = "runner"
+        sessions = ((0, 24),)
+        max_trades_day = 5
+        max_losses_day = 5
+
+        def __init__(self, sl):
+            self.sl_dist = sl
+            self.fired = False
+            self.reset()
+
+        def prepare(self, mkt):
+            pass
+
+        def signal(self, i, mkt, rules, ctx):
+            if i == 5 and not self.fired:
+                self.fired = True
+                return (-1, self.sl_dist, self.sl_dist * 3, 0.005, "t")
+            return None
+
+    outcomes = []
+    for price, scale, contract in ((2000.0, 1.0, 100.0), (1.15, 1.0 / 1740.0, 100000.0)):
+        # a favourable drift of 2R, then a reversal - the classic BE-lock case
+        sl = 20.0 * scale
+        path = [price] * 6 + [price - 2.2 * sl] * 6 + [price + 0.5 * sl] * 10
+        mkt = make_market(path, spread=0.0006 if price < 10 else 0.60,
+                          start="2026-01-05 08:00")
+        r = Rules(slip_entry_spread=0.0, slip_stop_spread=0.0,
+                  commission_per_lot=0.0, max_spread_mult=8,
+                  contract_size=contract, max_trade_risk_pct=0.05)
+        st = run_stage(mkt, Runner(sl), r, 0, len(path), "funded", 6000.0, None, 6000.0)
+        assert st.trades, f"no trade at price {price}"
+        t = st.trades[0]
+        outcomes.append(t.pnl / t.risk_usd)
+
+    gold_r, fx_r = outcomes
+    assert abs(gold_r - fx_r) < 0.10, (
+        f"same trade gave {gold_r:.2f}R on gold and {fx_r:.2f}R on FX — "
+        "an absolute price offset is leaking into the management logic")
+    print(f"  management scales across instruments   OK  ({gold_r:.2f}R vs {fx_r:.2f}R)")
+
+
 def test_position_size_matches_risk():
     """Lots must put the intended risk at the stop, within rounding."""
     mkt = make_market([2000.0] * 40)
@@ -222,6 +272,7 @@ if __name__ == "__main__":
         test_daily_loss_breach,
         test_stop_caps_the_breach,
         test_rejects_untradeable_size,
+        test_no_absolute_price_offsets_in_management,
         test_static_floor_does_not_trail,
         test_short_pays_spread_on_exit,
         test_position_size_matches_risk,
