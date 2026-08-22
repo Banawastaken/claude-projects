@@ -136,6 +136,45 @@ def test_real_sleeve_signals_are_causal():
     ok("calendar weight is causal", float((a - b).abs().max()) < 1e-12)
 
 
+def test_monthly_signal_trades_the_month_it_was_decided():
+    """A month-end signal must act on the following month, not the one after.
+
+    Regression: an extra shift on top of the ffill held every month-end
+    decision for a further month. The February 2020 exit did not trade until
+    1 April, riding the whole COVID drawdown, and Faber's max drawdown read
+    -22.9% instead of -9.6%.
+    """
+    idx = pd.bdate_range("2019-01-01", "2020-06-30")
+    # rising through 2019, then a step down in February 2020 deep enough to
+    # put the month-end close below the 10-month average
+    pre = (idx < "2020-02-01").sum()
+    v = np.concatenate([np.linspace(100, 140, pre),
+                        np.full(len(idx) - pre, 85.0)])
+    px = pd.Series(v, index=idx)
+
+    monthly = px.resample("ME").last()
+    sig = (monthly > monthly.rolling(10).mean()).astype(float)
+    daily = sig.reindex(px.index, method="ffill")
+    held = _executed(px, daily)
+
+    feb_end = monthly.index[monthly.index.get_indexer(
+        [pd.Timestamp("2020-02-29")], method="nearest")[0]]
+    ok("February is flagged as an exit", sig.loc[feb_end] == 0.0,
+       f"signal {sig.loc[feb_end]:.0f}")
+
+    after = px.index[px.index > feb_end]
+    # The signal is known at the February close, trades on the next session,
+    # and so earns from the session after that.
+    ok("flat by the second session of March", held.loc[after[1]] == 0.0,
+       f"{after[1].date()}")
+    late_feb = px.index[px.index <= feb_end][-1]
+    ok("still long in late February", held.loc[late_feb] == 1.0,
+       f"{late_feb.date()}")
+    march_end = pd.Timestamp("2020-03-31")
+    ok("and stays flat for the rest of March",
+       float(held.loc[after[1]:march_end].max()) == 0.0)
+
+
 def test_align_zero_fills_and_preserves_totals():
     a = pd.Series([0.01, 0.02], index=pd.to_datetime(["2020-01-02", "2020-01-06"]))
     b = pd.Series([0.03], index=pd.to_datetime(["2020-01-03"]))

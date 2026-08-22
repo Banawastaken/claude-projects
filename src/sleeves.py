@@ -24,10 +24,27 @@ import pandas as pd
 
 NY = "America/New_York"
 
-# Round-trip cost per unit of turnover, in basis points of notional.
-# Index CFDs and large ETFs sit near 2-4bp all-in at retail size; gold is the
-# 1.96bp measured earlier in this project.
-COST_BP = {"index": 3.0, "gold": 2.0, "etf": 3.0, "fx": 2.0, "commodity": 5.0}
+# Round-trip cost per unit of turnover, in basis points of notional, by the
+# asset class the universe already assigns. Index CFDs and large ETFs sit near
+# 2-4bp all-in at retail size; metals are the 1.96bp measured earlier in this
+# project; crypto is far wider and must not be priced like a currency.
+COST_BP = {"index": 3.0, "metal": 2.0, "etf": 3.0, "forex": 2.0,
+           "energy": 5.0, "crypto": 25.0}
+DEFAULT_COST_BP = 5.0
+
+
+def cost_for(name: str) -> float:
+    """Cost in bp for an instrument, from the universe's own asset class.
+
+    Matching on substrings of the ticker was getting crypto wrong (BTCUSD was
+    being charged 2bp, a currency's cost), so the class comes from the one
+    place that already defines it.
+    """
+    from universe import UNIVERSE
+    for inst in UNIVERSE:
+        if inst.fn_name == name:
+            return COST_BP.get(inst.asset_class, DEFAULT_COST_BP)
+    return DEFAULT_COST_BP
 
 
 # --------------------------------------------------------------------------
@@ -115,7 +132,7 @@ def sleeve_gold_january(name="XAUUSD"):
     """
     px = load_decade_daily(name)
     w = pd.Series((px.index.month == 1).astype(float), index=px.index)
-    return _returns_from_weights(px["close"], w, COST_BP["gold"]), px
+    return _returns_from_weights(px["close"], w, cost_for(name)), px
 
 
 # --------------------------------------------------------------------------
@@ -143,9 +160,12 @@ def sleeve_faber(symbols=FABER, months=10):
 
     monthly = px.resample("ME").last()
     sma = monthly.rolling(months).mean()
-    # The signal uses the month-end close, so it can only be acted on from the
-    # next month -- shift before broadcasting back to daily.
-    sig = (monthly > sma).astype(float).shift(1)
+    sig = (monthly > sma).astype(float)
+    # ffill already carries a month-end signal forward onto the days that
+    # follow it, and `_returns_from_weights` adds the one-day execution lag.
+    # An extra shift here would hold each month-end decision for a further
+    # month: the February 2020 exit would not have traded until 1 April,
+    # staying long through the entire COVID drawdown.
     daily_sig = sig.reindex(px.index, method="ffill")
 
     per = {}
@@ -188,11 +208,6 @@ def sleeve_tsmom(names, lookback_months=12, vol_window=60, target_vol=0.10):
 
     per = {}
     for n in px.columns:
-        cls = "gold" if n in ("XAUUSD", "XAGUSD") else (
-            "index" if any(k in n for k in ("SPX", "NDX", "US30", "US2000",
-                                            "GER", "UK1", "JP2", "FRA", "HK",
-                                            "AUS", "EUSTX")) else
-            ("commodity" if "O" in n and "USD" in n and len(n) == 6 else "fx"))
-        per[n] = _returns_from_weights(px[n], w[n], COST_BP[cls])
+        per[n] = _returns_from_weights(px[n], w[n], cost_for(n))
     frame = pd.DataFrame(per)
     return frame.sum(axis=1).dropna(), frame
