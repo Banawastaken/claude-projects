@@ -72,7 +72,8 @@ UNIVERSE = [
     Instrument("US2000", "USSC2000IDXUSD", "index", 10.0, (1800.0, 4000.0)),
     Instrument("GER30", "DEUIDXEUR", "index", 10.0 * 1.10, (16000.0, 32000.0)),
     Instrument("UK100", "GBRIDXGBP", "index", 10.0 * 1.30, (7000.0, 13000.0)),
-    Instrument("JP225", "JPNIDXJPY", "index", 10.0 / 150.0, (30000.0, 65000.0)),
+    # Range spans 2015-2026: the Nikkei traded near 17,000 in 2015.
+    Instrument("JP225", "JPNIDXJPY", "index", 10.0 / 150.0, (14000.0, 70000.0)),
     Instrument("FRA40", "FRAIDXEUR", "index", 10.0 * 1.10, (6500.0, 11000.0)),
     Instrument("AUS200", "AUSIDXAUD", "index", 10.0 * 0.65, (7000.0, 12000.0)),
     Instrument("HK50", "HKGIDXHKD", "index", 10.0 / 7.8, (15000.0, 32000.0)),

@@ -32,6 +32,10 @@ def curve(r: pd.Series):
 def main(src="data/multistrat/sleeves.parquet", out="data/multistrat/viz.json"):
     f = pd.read_parquet(src)
     r_iv, w_iv = combine(f, "invvol")
+    # Equal weight is reported alongside, not swapped in: inverse volatility
+    # was the allocation rule chosen up front, and picking the better-scoring
+    # of the two after seeing both is selection on the outcome.
+    r_eq, _ = combine(f, "equal")
 
     payload = {
         "window": [str(f.index.min().date()), str(f.index.max().date())],
@@ -51,6 +55,8 @@ def main(src="data/multistrat/sleeves.parquet", out="data/multistrat/viz.json"):
                           for k, v in stats(r_iv[r_iv.index >= SPLIT]).items()},
         "benchmarks": {k: {kk: (None if vv is None or (isinstance(vv, float) and not np.isfinite(vv)) else round(float(vv), 4))
                            for kk, vv in v.items()} for k, v in benchmarks().items()},
+        "stats_equal": {k: (None if v is None or (isinstance(v, float) and not np.isfinite(v)) else round(float(v), 4))
+                        for k, v in stats(r_eq).items()},
         "yearly": {},
         "corr": {a: {b: round(float(f[a].corr(f[b])), 3) for b in f.columns}
                  for a in f.columns},
