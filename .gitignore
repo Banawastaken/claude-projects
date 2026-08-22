@@ -2,6 +2,9 @@
 # src/fetch_candles.py + src/clean_data.py
 data/raw/
 data/candles/
+# Raw Dukascopy monthly cache: large, and re-downloadable by
+# src/fetch_decade_pool.py. The derived data/decade/*.parquet are tracked.
+data/h1/
 data/*.parquet
 data/*.csv
 
