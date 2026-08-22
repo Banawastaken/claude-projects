@@ -168,3 +168,28 @@ def drawdown_table(r: pd.Series, top=5):
         out.append((start, end, back, float(dd.loc[end])))
         d.loc[start:(back if back is not None else d.index[-1])] = 0.0
     return out
+
+
+def benchmarks(start="2015-01-01", path="data/yahoo"):
+    """Passive reference points over the same window.
+
+    Without these a Sharpe ratio has no scale. Buy-and-hold equities and a
+    60/40 are what the strategy has to beat to be worth running, and over a
+    sample dominated by an equity bull market they are a hard bar.
+    """
+    import os
+    out = {}
+    px = {}
+    for sym in ("SPY", "IEF"):
+        f = os.path.join(path, f"{sym}.parquet")
+        if not os.path.exists(f):
+            return out
+        d = pd.read_parquet(f)
+        s = d.set_index(pd.DatetimeIndex(d["date"]).tz_localize(None))["adj_close"]
+        px[sym] = s[s.index >= start]
+
+    out["SPY buy and hold"] = stats(px["SPY"].pct_change().dropna())
+    out["IEF buy and hold"] = stats(px["IEF"].pct_change().dropna())
+    both = pd.DataFrame(px).dropna()
+    out["60/40 SPY/IEF"] = stats((both.pct_change() * [0.6, 0.4]).sum(axis=1).dropna())
+    return out

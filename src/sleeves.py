@@ -99,23 +99,48 @@ def _returns_from_weights(px_close, weight, cost_bp):
 # sleeve 1 -- overnight index drift  ("pays while you sleep")
 # --------------------------------------------------------------------------
 
-def sleeve_overnight(names=("NDX100", "SPX500"), financing_annual=0.065):
+def short_rate(path="data/yahoo/^IRX.parquet"):
+    """Daily 13-week T-bill yield as a decimal, or None if not downloaded.
+
+    A flat financing rate across 2015-2026 is not a small simplification: the
+    bill yield was 0.06% in 2015 and 5.3% in 2023, so a single number either
+    charges the zero-rate years for money that was free or lets the recent
+    years finance too cheaply.
+    """
+    if not os.path.exists(path):
+        return None
+    d = pd.read_parquet(path)
+    s = d.set_index(pd.DatetimeIndex(d["date"]).tz_localize(None))["close"] / 100.0
+    return s.clip(lower=0.0)
+
+
+def sleeve_overnight(names=("NDX100", "SPX500"), markup=0.020,
+                     fallback_annual=0.065):
     """Long the index from the 16:00 NY close to the next 09:00 NY open.
 
     Uses the intraday legs rather than daily bars, so the return is the actual
     overnight window with the bid/ask round trip paid and one night of
-    financing charged.  Equal weight across the named indices.
+    financing charged.  Financing is the prevailing 13-week bill yield plus a
+    broker markup, per night, and falls back to a flat rate only if the rate
+    history is missing.  Equal weight across the named indices.
     """
     import sys
     sys.path.insert(0, "src")
     from anomaly import financing_bp, load, overnight_legs
 
+    rate = short_rate()
     cols = {}
     for n in names:
         df = load(n)
         on = overnight_legs(df)
-        r = (on["net_bp"] - financing_bp(financing_annual)) / 1e4
-        cols[n] = pd.Series(r.values, index=pd.to_datetime(on["date"]))
+        idx = pd.DatetimeIndex(pd.to_datetime(on["date"])).tz_localize(None)
+        if rate is None:
+            fin = pd.Series(financing_bp(fallback_annual), index=idx)
+        else:
+            r_ann = rate.reindex(idx, method="ffill").fillna(fallback_annual) + markup
+            fin = r_ann / 360.0 * 1e4
+        r = (pd.Series(on["net_bp"].values, index=idx) - fin) / 1e4
+        cols[n] = r
     frame = pd.DataFrame(cols)
     return frame.mean(axis=1).dropna(), frame
 

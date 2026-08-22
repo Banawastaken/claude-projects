@@ -15,7 +15,8 @@ import pandas as pd
 
 sys.path.insert(0, "src")
 
-from multistrat import combine, contribution, drawdown_table, stats  # noqa: E402
+from multistrat import (benchmarks, combine, contribution,  # noqa: E402
+                        drawdown_table, stats)
 from yearly import yearly_returns  # noqa: E402
 
 SPLIT = pd.Timestamp("2021-01-01")
@@ -48,6 +49,8 @@ def main(src="data/multistrat/sleeves.parquet", out="data/multistrat/viz.json"):
                          for k, v in stats(r_iv[r_iv.index < SPLIT]).items()},
         "stats_holdout": {k: (None if v is None or (isinstance(v, float) and not np.isfinite(v)) else round(float(v), 4))
                           for k, v in stats(r_iv[r_iv.index >= SPLIT]).items()},
+        "benchmarks": {k: {kk: (None if vv is None or (isinstance(vv, float) and not np.isfinite(vv)) else round(float(vv), 4))
+                           for kk, vv in v.items()} for k, v in benchmarks().items()},
         "yearly": {},
         "corr": {a: {b: round(float(f[a].corr(f[b])), 3) for b in f.columns}
                  for a in f.columns},

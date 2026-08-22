@@ -15,8 +15,8 @@ import pandas as pd
 
 sys.path.insert(0, "src")
 
-from multistrat import (align, combine, contribution, drawdown_table,  # noqa: E402
-                        fmt_stats, inverse_vol_weights, stats)
+from multistrat import (align, benchmarks, combine, contribution,  # noqa: E402
+                        drawdown_table, fmt_stats, inverse_vol_weights, stats)
 from yearly import yearly_table  # noqa: E402
 import sleeves as S  # noqa: E402
 
@@ -106,6 +106,10 @@ def main():
         rec = back.date() if back is not None else "not recovered"
         print(f"  {depth*100:>7.2f}%   {start.date()} -> {end.date()}   "
               f"recovered {rec}")
+
+    print(f"\n{'='*104}\nPASSIVE BENCHMARKS, same window\n{'='*104}")
+    print(fmt_stats(list(benchmarks().items()) +
+                    [("this portfolio (inv vol)", stats(full))]))
 
     print(f"\n{'='*104}\nRETURN BY CALENDAR YEAR\n{'='*104}")
     print("2015 is a warm-up: the inverse-vol allocation needs 60 active days"
