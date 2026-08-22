@@ -17,6 +17,7 @@ sys.path.insert(0, "src")
 
 from multistrat import (align, combine, contribution, drawdown_table,  # noqa: E402
                         fmt_stats, inverse_vol_weights, stats)
+from yearly import yearly_table  # noqa: E402
 import sleeves as S  # noqa: E402
 
 SPLIT = pd.Timestamp("2021-01-01")
@@ -69,9 +70,13 @@ def report(frame, label):
 
     r_eq, w_eq = combine(frame, "equal")
     r_iv, w_iv = combine(frame, "invvol")
+    r_10, _ = combine(frame, "invvol", target_vol=0.10)
     print("\ncombined:")
     print(fmt_stats([("equal weight", stats(r_eq)),
-                     ("inverse vol", stats(r_iv))]))
+                     ("inverse vol", stats(r_iv)),
+                     ("inverse vol @ 10% vol", stats(r_10))]))
+    print("  (the 10% line is the same strategy levered up; leverage moves"
+          " return and\n   drawdown together and leaves Sharpe alone.)")
 
     print("\ncorrelation between sleeves (daily):")
     c = frame.corr()
@@ -101,6 +106,12 @@ def main():
         rec = back.date() if back is not None else "not recovered"
         print(f"  {depth*100:>7.2f}%   {start.date()} -> {end.date()}   "
               f"recovered {rec}")
+
+    print(f"\n{'='*104}\nRETURN BY CALENDAR YEAR\n{'='*104}")
+    print("2015 is a warm-up: the inverse-vol allocation needs 60 active days"
+          " per sleeve\nbefore it will fund anything, so the combined line"
+          " starts flat.\n")
+    print(yearly_table(frame, full))
 
     os.makedirs("data/multistrat", exist_ok=True)
     frame.to_parquet("data/multistrat/sleeves.parquet")

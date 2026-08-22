@@ -19,21 +19,36 @@ import pandas as pd
 TRADING_DAYS = 252
 
 
+def periods_per_year(idx) -> float:
+    """Observations per year implied by the data, not assumed.
+
+    The sleeves sit on a union index that includes gold's Sunday session, so it
+    carries about 312 rows a year rather than 252. Assuming 252 would stretch
+    the elapsed time by a quarter and quietly understate every CAGR.
+    """
+    idx = pd.DatetimeIndex(idx)
+    if len(idx) < 2:
+        return float(TRADING_DAYS)
+    span = (idx[-1] - idx[0]).days / 365.25
+    return len(idx) / span if span > 0 else float(TRADING_DAYS)
+
+
 def stats(r: pd.Series, rf=0.0) -> dict:
     r = r.dropna()
     if len(r) < 20:
         return {"n": len(r)}
     cum = (1 + r).cumprod()
-    years = len(r) / TRADING_DAYS
+    ppy = periods_per_year(r.index)
+    years = (pd.DatetimeIndex(r.index)[-1] - pd.DatetimeIndex(r.index)[0]).days / 365.25
     cagr = cum.iloc[-1] ** (1 / years) - 1 if years > 0 and cum.iloc[-1] > 0 else np.nan
-    vol = r.std() * np.sqrt(TRADING_DAYS)
+    vol = r.std() * np.sqrt(ppy)
     dd = (cum / cum.cummax() - 1)
-    downside = r[r < 0].std() * np.sqrt(TRADING_DAYS)
+    downside = r[r < 0].std() * np.sqrt(ppy)
     t = r.mean() / (r.std() / np.sqrt(len(r))) if r.std() > 0 else np.nan
     return {
-        "n": len(r), "years": years, "cagr": cagr, "vol": vol,
-        "sharpe": (r.mean() * TRADING_DAYS - rf) / vol if vol > 0 else np.nan,
-        "sortino": (r.mean() * TRADING_DAYS - rf) / downside if downside > 0 else np.nan,
+        "n": len(r), "years": years, "ppy": ppy, "cagr": cagr, "vol": vol,
+        "sharpe": (r.mean() * ppy - rf) / vol if vol > 0 else np.nan,
+        "sortino": (r.mean() * ppy - rf) / downside if downside > 0 else np.nan,
         "maxdd": dd.min(), "calmar": cagr / abs(dd.min()) if dd.min() < 0 else np.nan,
         "hit": float((r > 0).mean()), "t": t,
         "total": cum.iloc[-1] - 1,
@@ -125,7 +140,8 @@ def combine(frame: pd.DataFrame, mode="invvol", target_vol=None, **kw):
         raise ValueError(mode)
     r = (frame * w).sum(axis=1)
     if target_vol:
-        realised = r.rolling(126, min_periods=60).std().shift(1) * np.sqrt(TRADING_DAYS)
+        ppy = periods_per_year(r.index)
+        realised = r.rolling(126, min_periods=60).std().shift(1) * np.sqrt(ppy)
         lev = (target_vol / realised).clip(upper=3.0).fillna(1.0)
         r = r * lev
     return r, w

@@ -184,9 +184,31 @@ def test_stats_are_sane_on_a_known_series():
     idx = pd.bdate_range("2020-01-01", periods=252)
     r = pd.Series(0.001, index=idx)         # +0.1% every day, no variance
     s = M.stats(r)
-    ok("CAGR matches compounding", abs(s["cagr"] - (1.001 ** 252 - 1)) < 1e-6,
-       f"{s['cagr']*100:.2f}%")
+    total = 1.001 ** 252 - 1
+    years = (idx[-1] - idx[0]).days / 365.25
+    ok("CAGR annualises the actual elapsed span",
+       abs(s["cagr"] - ((1 + total) ** (1 / years) - 1)) < 1e-9,
+       f"{s['cagr']*100:.2f}% over {years:.2f}y")
     ok("no drawdown on a monotone series", abs(s["maxdd"]) < 1e-12)
+
+
+def test_annualisation_uses_the_data_frequency():
+    """252 is an assumption; the sleeves' union index carries more rows."""
+    bd = pd.bdate_range("2020-01-01", periods=504)          # ~252/yr
+    allday = pd.date_range("2020-01-01", periods=731)       # ~365/yr
+    # ~261, not 252: a calendar year holds that many weekdays and
+    # bdate_range drops weekends but not exchange holidays.
+    ok("business-day series implies ~261/yr",
+       255 < M.periods_per_year(bd) < 266, f"{M.periods_per_year(bd):.0f}")
+    ok("calendar-day series implies ~365/yr",
+       360 < M.periods_per_year(allday) < 370,
+       f"{M.periods_per_year(allday):.0f}")
+
+    rng = np.random.default_rng(5)
+    r = pd.Series(rng.normal(0.0002, 0.005, len(allday)), index=allday)
+    s = M.stats(r)
+    ok("elapsed years come from the calendar, not the row count",
+       abs(s["years"] - 2.0) < 0.02, f"{s['years']:.2f}y")
 
 
 if __name__ == "__main__":
