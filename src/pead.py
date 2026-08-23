@@ -117,7 +117,7 @@ def reaction_day(ev, sessions: pd.DatetimeIndex):
 
 
 def build_events(events_json=os.path.join(DATA, "events.json"),
-                 window=2, hold=60):
+                 window=2, hold=60, market_adjust=True):
     """Every announcement as a row: when it became tradeable and how it reacted."""
     with open(events_json) as fh:
         ev = json.load(fh)
@@ -128,9 +128,15 @@ def build_events(events_json=os.path.join(DATA, "events.json"),
     if dropped:
         print(f"  dropped {len(dropped)} names with implausible daily moves "
               f"(worst {max(d for _, d in dropped)*100:,.0f}%)")
-    mkt = market_series().reindex(px.index).fillna(0.0)
     rets = px.pct_change()
-    excess = rets.sub(mkt, axis=0)
+    if market_adjust:
+        mkt = market_series().reindex(px.index).fillna(0.0)
+        excess = rets.sub(mkt, axis=0)
+    else:
+        # Raw returns carry the market. Over 2015-2026 that is roughly +14% a
+        # year of beta arriving in the long leg, which a long-only book keeps
+        # and a dollar-neutral one cancels.
+        excess = rets
     sessions = px.index
 
     rows = []
@@ -177,8 +183,10 @@ def causal_percentile(df, min_history=200):
 
 def run(top=0.2, hold=60, window=2, apply_costs=True,
         min_adv=DEFAULT_MIN_ADV, max_adv=None,
-        issuance_mode=None, vol_cut=None):
-    df, excess, sessions = build_events(window=window, hold=hold)
+        issuance_mode=None, vol_cut=None,
+        market_adjust=True, long_only=False):
+    df, excess, sessions = build_events(window=window, hold=hold,
+                                        market_adjust=market_adjust)
     if df is None or df.empty:
         return None
     before = df["ticker"].nunique()
@@ -205,6 +213,8 @@ def run(top=0.2, hold=60, window=2, apply_costs=True,
     df = df.dropna(subset=["pct"]).reset_index(drop=True)
     df["side"] = np.where(df["pct"] >= 1 - top, 1.0,
                           np.where(df["pct"] <= top, -1.0, 0.0))
+    if long_only:
+        df.loc[df["side"] < 0, "side"] = 0.0
     if issuance_mode == "aligned":
         # Only take the events where the earnings reaction and the share count
         # point the same way: a good surprise from a company buying back, a bad
