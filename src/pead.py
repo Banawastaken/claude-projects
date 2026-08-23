@@ -176,7 +176,8 @@ def causal_percentile(df, min_history=200):
 
 
 def run(top=0.2, hold=60, window=2, apply_costs=True,
-        min_adv=DEFAULT_MIN_ADV, max_adv=None):
+        min_adv=DEFAULT_MIN_ADV, max_adv=None,
+        issuance_mode=None, vol_cut=None):
     df, excess, sessions = build_events(window=window, hold=hold)
     if df is None or df.empty:
         return None
@@ -190,10 +191,27 @@ def run(top=0.2, hold=60, window=2, apply_costs=True,
         hi = "inf" if max_adv is None else f"{max_adv/1e6:.0f}M"
         print(f"  liquidity band ${min_adv/1e6:.0f}M-${hi} ADV: "
               f"{df['ticker'].nunique()} of {before} names kept")
+    if issuance_mode or vol_cut is not None:
+        from pead_filters import attach_issuance, attach_volatility, load_shares
+        df = attach_volatility(attach_issuance(df, load_shares()),
+                               excess, sessions)
+        if vol_cut is not None:
+            df = df[df["vol_rank"] <= vol_cut]
+        if issuance_mode:
+            df = df[df["issuance"].notna()]
+        df = df.reset_index(drop=True)
+
     df["pct"] = causal_percentile(df)
     df = df.dropna(subset=["pct"]).reset_index(drop=True)
     df["side"] = np.where(df["pct"] >= 1 - top, 1.0,
                           np.where(df["pct"] <= top, -1.0, 0.0))
+    if issuance_mode == "aligned":
+        # Only take the events where the earnings reaction and the share count
+        # point the same way: a good surprise from a company buying back, a bad
+        # one from a company diluting.
+        keep = ((df["side"] > 0) & (df["issuance"] < 0)) | \
+               ((df["side"] < 0) & (df["issuance"] > 0))
+        df.loc[~keep, "side"] = 0.0
     trades = df[df["side"] != 0].reset_index(drop=True)
 
     n = len(sessions)

@@ -17,6 +17,7 @@ import json
 import os
 import sys
 import time
+import urllib.error
 import urllib.request
 
 CONTACT = os.environ.get("SEC_CONTACT", "Mikhail Hoh mikhailhoh@gmail.com")
@@ -50,6 +51,15 @@ def _get(url, host=None, tries=4):
                     raw = gzip.decompress(raw)
                 _last[0] = time.time()
                 return json.loads(raw.decode())
+        except urllib.error.HTTPError as e:
+            _last[0] = time.time()
+            # 404 means the company never tagged this concept. Backing off and
+            # asking three more times turns a missing field into 14 seconds of
+            # sleep per company, which dominated the whole fetch.
+            if e.code in (403, 404):
+                return None
+            time.sleep(delay)
+            delay *= 2
         except Exception:
             _last[0] = time.time()
             time.sleep(delay)
