@@ -49,6 +49,13 @@ def build():
         detail["faber_taa"] = frame
         print(f"  faber_taa          {len(r):>5,} obs  ({', '.join(frame.columns)})")
 
+    r, res = S.sleeve_pead()
+    if r is not None:
+        out["pead"] = r
+        n_names = res["trades"]["ticker"].nunique()
+        print(f"  pead               {len(r):>5,} obs  "
+              f"({len(res['trades']):,} trades across {n_names} names)")
+
     uni = tsmom_universe()
     r, frame = S.sleeve_tsmom(uni)
     if r is not None:

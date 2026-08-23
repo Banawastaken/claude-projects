@@ -169,10 +169,15 @@ def run(top=0.2, hold=60, window=2, apply_costs=True, min_adv=0.0):
     trades = df[df["side"] != 0].reset_index(drop=True)
 
     n = len(sessions)
-    pos = pd.DataFrame(0.0, index=range(n), columns=sorted(trades["ticker"].unique()))
+    cols = sorted(trades["ticker"].unique())
+    col_of = {t: j for j, t in enumerate(cols)}
+    # Accumulate into a plain array: thousands of overlapping holding windows
+    # written through DataFrame.loc is minutes of work for the same result.
+    arr = np.zeros((n, len(cols)))
     for r in trades.itertuples():
         lo, hi = r.entry_i, min(r.entry_i + hold, n)
-        pos.loc[lo:hi - 1, r.ticker] += r.side
+        arr[lo:hi, col_of[r.ticker]] += r.side
+    pos = pd.DataFrame(arr, columns=cols)
 
     active = (pos != 0)
     count = active.sum(axis=1).replace(0, np.nan)

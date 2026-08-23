@@ -236,3 +236,31 @@ def sleeve_tsmom(names, lookback_months=12, vol_window=60, target_vol=0.10):
         per[n] = _returns_from_weights(px[n], w[n], cost_for(n))
     frame = pd.DataFrame(per)
     return frame.sum(axis=1).dropna(), frame
+
+
+# --------------------------------------------------------------------------
+# sleeve 5 -- post-earnings announcement drift
+# --------------------------------------------------------------------------
+
+def sleeve_pead(top=0.2, hold=60, min_adv=5e6):
+    """Long the best earnings reactions, short the worst, held for a quarter.
+
+    Returns are already market-adjusted and dollar-neutral inside `pead.run`,
+    so this sleeve is a spread rather than a directional position, and its
+    correlation with the others should be near zero for structural reasons
+    rather than by luck.
+
+    `min_adv` drops names too thin to trade at size. PEAD is strongest in
+    exactly those names, so this deliberately gives up some of the measured
+    effect in exchange for a number that could be realised.
+    """
+    import sys
+    sys.path.insert(0, "src")
+    try:
+        from pead import run as pead_run
+    except Exception:
+        return None, None
+    res = pead_run(top=top, hold=hold, min_adv=min_adv)
+    if res is None:
+        return None, None
+    return res["ret"].dropna(), res
