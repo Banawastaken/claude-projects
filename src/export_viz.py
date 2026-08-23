@@ -89,6 +89,74 @@ def pead_block():
     return out
 
 
+def filter_block():
+    """PEAD's traded result under each filter combination, micro-cap band."""
+    try:
+        from pead import run as pead_run
+    except Exception:
+        return None
+    out = []
+    for label, im, vc in (("Unfiltered", None, None),
+                          ("Least volatile 25%", None, 0.25),
+                          ("Buyback-aligned", "aligned", None),
+                          ("Both filters", "aligned", 0.25)):
+        try:
+            g = pead_run(min_adv=0, max_adv=5e6, apply_costs=False,
+                         issuance_mode=im, vol_cut=vc)
+            n = pead_run(min_adv=0, max_adv=5e6, apply_costs=True,
+                         issuance_mode=im, vol_cut=vc)
+        except Exception:
+            continue
+        out.append({"label": label, "gross": _clean(stats(g["ret"])),
+                    "net": _clean(stats(n["ret"]))})
+    return out
+
+
+def orderflow_block(path="data/mbo/es_1s_v2.parquet"):
+    """Order-flow features on real ES data, and the economics of trading them."""
+    import os
+    if not os.path.exists(path):
+        return None
+    sys.path.insert(0, "src")
+    from mbo_features import predictive_test
+    from mbo_run import rth
+
+    f = pd.read_parquet(path)
+    f = rth(f[f["updates"] > 0])
+    pt = predictive_test(f, horizons=(1, 5, 30, 60))
+    mid = f["mid"].to_numpy()
+    sp = f["spread"].to_numpy()
+    qi = f["qi"].to_numpy()
+
+    econ = []
+    for h in (1, 5, 30):
+        fwd = np.full(len(mid), np.nan)
+        fwd[:-h] = mid[h:] / mid[:-h] - 1.0
+        for th in (0.3, 0.6, 0.9):
+            sig = np.where(qi > th, 1.0, np.where(qi < -th, -1.0, 0.0))
+            m = (sig != 0) & np.isfinite(fwd)
+            if m.sum() < 200:
+                continue
+            gross = sig[m] * fwd[m]
+            cost = sp[m] / mid[m]
+            net = gross - cost
+            econ.append({"h": h, "threshold": th, "trades": int(m.sum()),
+                         "gross_bp": round(float(gross.mean()) * 1e4, 4),
+                         "cost_bp": round(float(cost.mean()) * 1e4, 4),
+                         "net_bp": round(float(net.mean()) * 1e4, 4)})
+
+    return {
+        "bars": int(len(f)),
+        "quotes": 24323530,
+        "spend_usd": 6.96,
+        "mean_spread_bp": round(float((sp / mid).mean()) * 1e4, 3),
+        "sec_vol_bp": round(float(pd.Series(mid).pct_change().std()) * 1e4, 3),
+        "predictive": [{k: (round(float(v), 4) if isinstance(v, float) else v)
+                        for k, v in r.items()} for r in pt.to_dict("records")],
+        "economics": econ,
+    }
+
+
 def main(src="data/multistrat/sleeves.parquet", out="data/multistrat/viz.json"):
     f = pd.read_parquet(src)
     r_iv, w_iv = combine(f, "invvol")
@@ -118,6 +186,8 @@ def main(src="data/multistrat/sleeves.parquet", out="data/multistrat/viz.json"):
         "stats_equal": {k: (None if v is None or (isinstance(v, float) and not np.isfinite(v)) else round(float(v), 4))
                         for k, v in stats(r_eq).items()},
         "pead": pead_block(),
+        "filters": filter_block(),
+        "orderflow": orderflow_block(),
         "yearly": {},
         "corr": {a: {b: round(float(f[a].corr(f[b])), 3) for b in f.columns}
                  for a in f.columns},
