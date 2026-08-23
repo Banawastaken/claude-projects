@@ -15,6 +15,13 @@ data/gex/raw/
 data/edgar/
 data/pead/px/
 data/mbo/
+# Purchased raw OPRA downloads: a few hundred MB of binary, and re-fetchable
+# from Databento with the key. The derived chains and daily gamma levels are
+# small and get tracked instead.
+data/opra/*.dbn.zst
+data/opra/definitions.parquet
+data/opra/open_interest.parquet
+data/opra/settles.parquet
 data/*.parquet
 data/*.csv
 
