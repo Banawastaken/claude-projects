@@ -5,6 +5,11 @@ data/candles/
 # Raw Dukascopy monthly cache: large, and re-downloadable by
 # src/fetch_decade_pool.py. The derived data/decade/*.parquet are tracked.
 data/h1/
+# Derived from data/gex/daily + metrics.jsonl by `gexdb.py rebuild`, and the
+# raw payloads are ~500KB/day. The committed text files are the record.
+data/gex/gex.db
+data/gex/gex.db-*
+data/gex/raw/
 data/*.parquet
 data/*.csv
 
