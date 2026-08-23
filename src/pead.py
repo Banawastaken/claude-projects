@@ -184,7 +184,7 @@ def causal_percentile(df, min_history=200):
 def run(top=0.2, hold=60, window=2, apply_costs=True,
         min_adv=DEFAULT_MIN_ADV, max_adv=None,
         issuance_mode=None, vol_cut=None,
-        market_adjust=True, long_only=False):
+        market_adjust=True, long_only=False, flat_weight=None):
     df, excess, sessions = build_events(window=window, hold=hold,
                                         market_adjust=market_adjust)
     if df is None or df.empty:
@@ -240,7 +240,14 @@ def run(top=0.2, hold=60, window=2, apply_costs=True,
 
     active = (pos != 0)
     count = active.sum(axis=1).replace(0, np.nan)
-    w = pos.div(count, axis=0).fillna(0.0)
+    if flat_weight:
+        # A fixed fraction of capital per position, as the published rules
+        # specify. Gross exposure is then however many positions happen to be
+        # open times that fraction, so the book levers up in busy earnings
+        # season rather than diluting each name.
+        w = (pos * flat_weight).fillna(0.0)
+    else:
+        w = pos.div(count, axis=0).fillna(0.0)
 
     ex = excess.reindex(columns=w.columns).fillna(0.0)
     gross = (w.shift(1).fillna(0.0) * ex).sum(axis=1)
