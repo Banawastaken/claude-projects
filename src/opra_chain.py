@@ -65,7 +65,24 @@ def definitions(root=OUT, cache=os.path.join(OUT, "definitions.parquet")):
 
 
 def open_interest(root=OUT, cache=os.path.join(OUT, "open_interest.parquet")):
-    """date, instrument_id, open interest at that day's close."""
+    """date, instrument_id, open interest known at that morning's open.
+
+    Two details decide whether this is usable.
+
+    The timestamp is `ts_event`, not `ts_ref`: OPRA leaves `ts_ref` as the
+    uint64 sentinel on open-interest records, and reading it collapsed a year
+    of data onto a single date without erroring.
+
+    Every contract's figure arrives from four publishers at 10:30 UTC, before
+    the cash open, and they agree exactly -- checked across a month, zero
+    disagreements -- so the duplicates are one OCC number disseminated four
+    times and must be deduplicated rather than summed. Summing would have
+    quadrupled every gamma level.
+
+    Stamped pre-open, the figure describes the previous close and is therefore
+    known before the session it is keyed to: what dealers are carrying into
+    that day.
+    """
     if os.path.exists(cache):
         return pd.read_parquet(cache)
     import databento as db
@@ -75,7 +92,7 @@ def open_interest(root=OUT, cache=os.path.join(OUT, "open_interest.parquet")):
         for r in db.DBNStore.from_file(f):
             if r.stat_type != STAT_OPEN_INTEREST:
                 continue
-            recs.append((r.ts_ref, r.instrument_id, r.quantity))
+            recs.append((r.ts_event, r.instrument_id, r.quantity))
             n += 1
         print(f"  {os.path.basename(f)}: {n:,} OI records", flush=True)
     df = pd.DataFrame(recs, columns=["ts", "instrument_id", "oi"])
@@ -102,6 +119,48 @@ def settles(root=OUT, cache=os.path.join(OUT, "settles.parquet")):
                                                  keep="last")
     df.to_parquet(cache, index=False)
     return df
+
+
+def implied_vol_vec(price, spot, strike, t, right, r=0.04, lo=0.005, hi=4.0,
+                    iters=60):
+    """Vectorised Black-Scholes inversion by bisection over whole chains.
+
+    A year of NDX is 578,000 contract-days; inverting them one at a time in
+    Python is tens of minutes, and the same bisection across numpy arrays is
+    seconds. Bisection rather than Newton for the same reason as before -- it
+    cannot diverge on the deep wings where vega is nearly zero, and those are
+    exactly the strikes a gamma profile must keep.
+    """
+    from scipy.special import ndtr
+
+    price = np.asarray(price, float)
+    spot = np.asarray(spot, float)
+    strike = np.asarray(strike, float)
+    t = np.maximum(np.asarray(t, float), 1.0 / 365.0)
+    right = np.asarray(right, float)
+
+    def bs(sig):
+        vt = sig * np.sqrt(t)
+        d1 = (np.log(spot / strike) + (r + 0.5 * sig ** 2) * t) / vt
+        d2 = d1 - vt
+        disc = strike * np.exp(-r * t)
+        call = spot * ndtr(d1) - disc * ndtr(d2)
+        put = disc * ndtr(-d2) - spot * ndtr(-d1)
+        return np.where(right > 0, call, put)
+
+    a = np.full_like(price, lo)
+    b = np.full_like(price, hi)
+    fa = bs(a) - price
+    fb = bs(b) - price
+    bracketed = (fa * fb) <= 0
+    for _ in range(iters):
+        m = 0.5 * (a + b)
+        fm = bs(m) - price
+        left = (fa * fm) < 0
+        b = np.where(left, m, b)
+        a = np.where(left, a, m)
+        fa = np.where(left, fa, fm)
+    return np.where(bracketed, 0.5 * (a + b), np.nan)
 
 
 def implied_vol(price, spot, strike, t, right, r=0.04, lo=0.01, hi=3.0):
