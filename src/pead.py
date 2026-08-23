@@ -41,6 +41,19 @@ NY = "America/New_York"
 # constant.
 COST_TIERS = [(1e8, 8.0), (2e7, 20.0), (5e6, 45.0), (0.0, 90.0)]
 
+# A sample drawn at random from every EDGAR filer is mostly micro-caps, and
+# Yahoo's adjusted close does not reliably handle their reverse splits: the raw
+# pull contained a +12,213% day. A move that size is a corporate-action
+# artifact rather than a return, and the series carrying it cannot be trusted
+# anywhere, so the name is dropped whole rather than the day patched. The
+# threshold is set far above any genuine one-day move so it catches errors and
+# not biotech.
+MAX_PLAUSIBLE_DAILY = 5.0
+
+# Tradeability floor. PEAD is strongest in illiquid names, so this knowingly
+# gives up measured effect for a number that could be realised.
+DEFAULT_MIN_ADV = 5e6
+
 
 def cost_bp(adv: float) -> float:
     for floor, bp in COST_TIERS:
@@ -50,7 +63,7 @@ def cost_bp(adv: float) -> float:
 
 
 def load_prices(tickers, path=os.path.join(DATA, "px")):
-    px, adv = {}, {}
+    px, adv, dropped = {}, {}, []
     for tk in tickers:
         f = os.path.join(path, f"{tk}.parquet")
         if not os.path.exists(f):
@@ -61,11 +74,15 @@ def load_prices(tickers, path=os.path.join(DATA, "px")):
         s = s[~s.index.duplicated(keep="last")]
         if s.notna().sum() < 500:
             continue
+        r = s.pct_change()
+        if r.abs().max() > MAX_PLAUSIBLE_DAILY:
+            dropped.append((tk, float(r.abs().max())))
+            continue
         px[tk] = s
         dv = (pd.Series(d["close"].values, index=idx)
               * pd.Series(d["volume"].values, index=idx))
         adv[tk] = float(dv.tail(750).median()) if dv.notna().any() else 0.0
-    return pd.DataFrame(px).sort_index(), adv
+    return pd.DataFrame(px).sort_index(), adv, dropped
 
 
 def market_series(path="data/yahoo/SPY.parquet"):
@@ -105,9 +122,12 @@ def build_events(events_json=os.path.join(DATA, "events.json"),
     with open(events_json) as fh:
         ev = json.load(fh)
     tickers = sorted(ev)
-    px, adv = load_prices(tickers)
+    px, adv, dropped = load_prices(tickers)
     if px.empty:
         return None, None, None
+    if dropped:
+        print(f"  dropped {len(dropped)} names with implausible daily moves "
+              f"(worst {max(d for _, d in dropped)*100:,.0f}%)")
     mkt = market_series().reindex(px.index).fillna(0.0)
     rets = px.pct_change()
     excess = rets.sub(mkt, axis=0)
@@ -155,12 +175,21 @@ def causal_percentile(df, min_history=200):
     return out
 
 
-def run(top=0.2, hold=60, window=2, apply_costs=True, min_adv=0.0):
+def run(top=0.2, hold=60, window=2, apply_costs=True,
+        min_adv=DEFAULT_MIN_ADV, max_adv=None):
     df, excess, sessions = build_events(window=window, hold=hold)
     if df is None or df.empty:
         return None
+    before = df["ticker"].nunique()
     if min_adv > 0:
-        df = df[df["adv"] >= min_adv].reset_index(drop=True)
+        df = df[df["adv"] >= min_adv]
+    if max_adv is not None:
+        df = df[df["adv"] < max_adv]
+    df = df.reset_index(drop=True)
+    if min_adv > 0 or max_adv is not None:
+        hi = "inf" if max_adv is None else f"{max_adv/1e6:.0f}M"
+        print(f"  liquidity band ${min_adv/1e6:.0f}M-${hi} ADV: "
+              f"{df['ticker'].nunique()} of {before} names kept")
     df["pct"] = causal_percentile(df)
     df = df.dropna(subset=["pct"]).reset_index(drop=True)
     df["side"] = np.where(df["pct"] >= 1 - top, 1.0,
@@ -176,12 +205,14 @@ def run(top=0.2, hold=60, window=2, apply_costs=True, min_adv=0.0):
     for r in trades.itertuples():
         lo, hi = r.entry_i, min(r.entry_i + hold, n)
         arr[lo:hi, col_of[r.ticker]] += r.side
-    pos = pd.DataFrame(arr, columns=cols)
+    # Carry the session dates from here on, so every frame derived from `pos`
+    # shares one index. Setting it later left `count` on the integer index and
+    # silently reindexed the fee calculation to all-NaN, billing nothing.
+    pos = pd.DataFrame(arr, index=sessions, columns=cols)
 
     active = (pos != 0)
     count = active.sum(axis=1).replace(0, np.nan)
     w = pos.div(count, axis=0).fillna(0.0)
-    w.index = sessions
 
     ex = excess.reindex(columns=w.columns).fillna(0.0)
     gross = (w.shift(1).fillna(0.0) * ex).sum(axis=1)
@@ -190,7 +221,12 @@ def run(top=0.2, hold=60, window=2, apply_costs=True, min_adv=0.0):
         bp = pd.Series({t: cost_bp(a) for t, a in
                         zip(trades["ticker"], trades["adv"])})
         bp = bp.reindex(w.columns).fillna(COST_TIERS[-1][1])
-        turn = w.diff().abs().fillna(w.abs())
+        # Charge only real entries and exits. Taking turnover off the
+        # normalised weights instead would re-mark every open position on any
+        # day the position count changed -- which is most days -- and bill a
+        # rebalance nobody would place.
+        opened = pos.diff().abs().fillna(pos.abs())
+        turn = opened.div(count, axis=0).fillna(0.0)
         fees = (turn * bp / 1e4).sum(axis=1)
     else:
         fees = pd.Series(0.0, index=w.index)

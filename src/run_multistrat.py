@@ -49,13 +49,6 @@ def build():
         detail["faber_taa"] = frame
         print(f"  faber_taa          {len(r):>5,} obs  ({', '.join(frame.columns)})")
 
-    r, res = S.sleeve_pead()
-    if r is not None:
-        out["pead"] = r
-        n_names = res["trades"]["ticker"].nunique()
-        print(f"  pead               {len(r):>5,} obs  "
-              f"({len(res['trades']):,} trades across {n_names} names)")
-
     uni = tsmom_universe()
     r, frame = S.sleeve_tsmom(uni)
     if r is not None:
@@ -64,6 +57,37 @@ def build():
         print(f"  ts_momentum        {len(r):>5,} obs  "
               f"({frame.shape[1]} markets: {', '.join(frame.columns)})")
     return out, detail
+
+
+def report_pead():
+    """PEAD is measured but deliberately left out of the combination.
+
+    It is negative after costs in both liquidity bands, so adding it as a
+    sleeve would subtract from the portfolio. Reporting it separately keeps a
+    real, faithfully tested result visible without letting a losing strategy
+    into the allocation on the grounds that it was interesting.
+    """
+    try:
+        from pead import run as pead_run
+    except Exception:
+        return
+    print(f"\n{'='*104}\nPEAD, measured but not allocated\n{'='*104}")
+    rows = []
+    for label, lo, hi in (("micro <$5M ADV", 0, 5e6), ("liquid >$5M ADV", 5e6, None)):
+        try:
+            gross = pead_run(min_adv=lo, max_adv=hi, apply_costs=False)
+            net = pead_run(min_adv=lo, max_adv=hi, apply_costs=True)
+        except Exception as e:
+            print(f"  {label}: unavailable ({e})")
+            continue
+        yrs = (net["ret"].index[-1] - net["ret"].index[0]).days / 365.25
+        rows.append((f"{label}  gross", stats(gross["ret"])))
+        rows.append((f"{label}  after cost", stats(net["ret"])))
+        print(f"  {label}: {len(net['trades']):,} trades, "
+              f"fees {net['fees'].sum()/yrs*100:.2f}%/yr")
+    if rows:
+        print(fmt_stats(rows))
+        print("  Left out of the combination: negative after costs in both bands.")
 
 
 def report(frame, label):
@@ -113,6 +137,8 @@ def main():
         rec = back.date() if back is not None else "not recovered"
         print(f"  {depth*100:>7.2f}%   {start.date()} -> {end.date()}   "
               f"recovered {rec}")
+
+    report_pead()
 
     print(f"\n{'='*104}\nPASSIVE BENCHMARKS, same window\n{'='*104}")
     print(fmt_stats(list(benchmarks().items()) +
