@@ -55,7 +55,7 @@ def plan(dataset="GLBX.MDP3", symbols=("ES.c.0",), schema="mbo",
     c = client()
     kw = dict(dataset=dataset, symbols=list(symbols), schema=schema,
               start=start, end=end, stype_in=stype_in)
-    cost = c.metadata.get_cost(mode="historical", **kw)
+    cost = c.metadata.get_cost(**kw)
     size = c.metadata.get_billable_size(**kw)
     return {"dataset": dataset, "symbols": list(symbols), "schema": schema,
             "start": start, "end": end,

@@ -145,3 +145,59 @@ if __name__ == "__main__":
         print(f"\n{tk} ({name}, CIK {cik}): {len(ed)} earnings 8-Ks since 2014")
         for r in ed[:3] + ed[-3:]:
             print(f"   {r['date']}  accepted {r['accepted']}")
+
+
+def shares_outstanding(cik: int, cache_dir="data/edgar/shares"):
+    """Split-adjusted common shares outstanding, by filing date.
+
+    Raw XBRL share counts are not split-adjusted: Apple reports 895M shares in
+    2009 and 14.6bn now, which is two stock splits and not dilution. Between
+    consecutive quarterly filings a real buyback or raise moves the count by a
+    few per cent at most, so any jump beyond +-50% is a split and is divided
+    out. The series is then rebased forward, which is all net issuance needs.
+    """
+    import os
+    os.makedirs(cache_dir, exist_ok=True)
+    cache = os.path.join(cache_dir, f"{cik:010d}.json")
+    if os.path.exists(cache):
+        with open(cache) as fh:
+            return json.load(fh)
+
+    rows = []
+    for concept in ("dei/EntityCommonStockSharesOutstanding",
+                    "us-gaap/CommonStockSharesOutstanding"):
+        d = _get(f"https://data.sec.gov/api/xbrl/companyconcept/"
+                 f"CIK{cik:010d}/{concept}.json")
+        if not d:
+            continue
+        for unit, obs in (d.get("units") or {}).items():
+            for o in obs:
+                end = o.get("end") or o.get("filed")
+                val = o.get("val")
+                if end and val:
+                    rows.append({"date": end, "shares": float(val)})
+        if rows:
+            break
+
+    if not rows:
+        with open(cache, "w") as fh:
+            json.dump([], fh)
+        return []
+
+    by_date = {}
+    for r in rows:                      # keep the largest report per date
+        d0 = r["date"]
+        by_date[d0] = max(by_date.get(d0, 0.0), r["shares"])
+    series = [{"date": d, "shares": s} for d, s in sorted(by_date.items())]
+
+    factor = 1.0
+    out = []
+    for i, r in enumerate(series):
+        if i:
+            ratio = r["shares"] / series[i - 1]["shares"]
+            if ratio > 1.5 or ratio < 0.667:
+                factor *= ratio         # a split, not a share issue
+        out.append({"date": r["date"], "shares": r["shares"] / factor})
+    with open(cache, "w") as fh:
+        json.dump(out, fh)
+    return out
