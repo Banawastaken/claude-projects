@@ -10,6 +10,11 @@ data/h1/
 data/gex/gex.db
 data/gex/gex.db-*
 data/gex/raw/
+# Re-fetchable caches. data/pead/events.json and universe.json are the derived
+# artifacts worth keeping; the per-company EDGAR JSON and price parquets are not.
+data/edgar/
+data/pead/px/
+data/mbo/
 data/*.parquet
 data/*.csv
 
