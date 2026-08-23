@@ -90,11 +90,10 @@ def reaction_day(ev, sessions: pd.DatetimeIndex):
             after_close = t.hour >= 20
         except Exception:
             after_close = True
-    pos = sessions.searchsorted(d, side="left" if not after_close else "right")
-    if after_close:
-        # searchsorted 'right' already lands past d; if d is not a session the
-        # next one is still correct.
-        pos = sessions.searchsorted(d, side="right")
+    # "right" lands strictly past d, "left" lands on d when d is a session and
+    # on the next one otherwise -- which is what a pre-open release on a
+    # holiday should do.
+    pos = sessions.searchsorted(d, side="right" if after_close else "left")
     if pos >= len(sessions):
         return None
     return int(pos)
