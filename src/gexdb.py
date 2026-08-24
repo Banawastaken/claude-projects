@@ -187,11 +187,25 @@ def record(symbols=("_SPX", "_NDX"), path=DB, buckets=BUCKETS, chain_path=None):
                      call_wall=excluded.call_wall, put_wall=excluded.put_wall,
                      n_contracts=excluded.n_contracts, total_oi=excluded.total_oi,
                      raw_path=excluded.raw_path
+                   WHERE substr(excluded.captured_utc, 1, 10) <= snapshots.trade_date
+                      OR substr(snapshots.captured_utc, 1, 10) > snapshots.trade_date
                    RETURNING id""",
                 (payload.get("symbol", sym), tdate, captured, name, spot, total,
                  flip, None if flip is None else (spot / flip - 1) * 100.0,
                  cw, pw, int(used.sum()), float(ch["oi"][used].sum()), raw))
-            sid = cur.fetchone()[0]
+            got = cur.fetchone()
+            if got is None:
+                # The stored row was captured on the session it describes and
+                # this one was not -- a pre-open fetch the following Monday
+                # carries live quotes but still reports Friday's date, and
+                # letting it overwrite would replace a settled close with a
+                # partial one. Keep what is there.
+                sid = con.execute(
+                    "SELECT id FROM snapshots WHERE symbol=? AND trade_date=?"
+                    " AND bucket=?",
+                    (payload.get("symbol", sym), tdate, name)).fetchone()[0]
+                continue
+            sid = got[0]
 
             con.execute("DELETE FROM strike_gex WHERE snapshot_id=?", (sid,))
             rows = []
