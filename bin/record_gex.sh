@@ -1,50 +1,59 @@
 #!/usr/bin/env bash
 # Record one dealer gamma snapshot and commit it.
 #
-# This exists because the scheduled Routine that calls it used to be a list of
-# prose steps, and three of the four asked the model to decide whether a commit
-# was warranted. "Nothing new today" was always the cheaper branch, so three
-# firings in a row reported success and left the repository untouched. Here the
-# decision is the script's: it commits, or it exits non-zero and says why.
+# Every run appends a line to data/gex/routine.log and commits it, even when
+# the snapshot itself is a no-op. That log is the only way to see what a
+# scheduled firing actually did: the Routine runs in its own container, its
+# reply is not readable from here, and "nothing new today" and "the push
+# silently failed" look identical from outside. A heartbeat that must be
+# committed collapses those two into one observable.
 set -uo pipefail
 
 BRANCH=claude/prop-firm-strategies-bvor8w
+LOG=data/gex/routine.log
 cd "$(dirname "$0")/.." || exit 1
 
-die() { echo "record_gex: $*" >&2; exit 1; }
+now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
-git rev-parse --git-dir >/dev/null 2>&1 || die "not a git repository: $PWD"
+# Record the outcome, then commit and push it along with whatever data landed.
+# Called on every exit path, including the failures.
+finish() {
+  local outcome="$1"
+  echo "$(now) $outcome" >> "$LOG"
+  echo "record_gex: $outcome"
+
+  git add "$LOG" data/gex/daily data/gex/metrics.jsonl 2>/dev/null
+  git diff --cached --quiet && exit "${2:-0}"
+
+  git -c user.email=mikhailhoh@gmail.com -c user.name="Mikhail Hoh" \
+      commit -q -m "Record GEX run: $outcome" || {
+        echo "record_gex: commit failed" >&2; exit 1; }
+
+  for wait in 2 4 8 16 0; do
+    git push -u origin "$BRANCH" 2>&1 | tail -1 && exit "${2:-0}"
+    [ "$wait" = 0 ] && break
+    sleep "$wait"
+  done
+  echo "record_gex: push failed after 5 attempts, the commit is local only" >&2
+  exit 1
+}
+
+git rev-parse --git-dir >/dev/null 2>&1 || { echo "record_gex: not a git repo: $PWD" >&2; exit 1; }
+git checkout "$BRANCH" 2>&1 | tail -1
+git pull --ff-only origin "$BRANCH" 2>&1 | tail -1
 
 python3 -c 'import numpy, pandas' 2>/dev/null \
-  || die "missing numpy/pandas -- the container image does not carry them"
+  || finish "FAILED: container has no numpy/pandas" 1
 
-git checkout "$BRANCH" 2>&1 | tail -1 || die "cannot checkout $BRANCH"
-git pull --ff-only origin "$BRANCH" 2>&1 | tail -2
-
-before=$(ls data/gex/daily/ 2>/dev/null | wc -l)
-python3 src/gexdb.py || die "src/gexdb.py failed -- the CBOE fetch or the greeks did not complete"
-after=$(ls data/gex/daily/ 2>/dev/null | wc -l)
-
-git add data/gex/daily data/gex/metrics.jsonl
-if git diff --cached --quiet; then
-  # A duplicate day is the one legitimate no-op: the delayed chain still
-  # carries the previous session's date, or the market was shut.
-  [ "$before" = "$after" ] || die "wrote $((after - before)) file(s) that git will not stage"
-  echo "record_gex: nothing new -- the chain still reports a date already stored"
-  exit 0
-fi
+out=$(python3 src/gexdb.py 2>&1) || finish "FAILED: src/gexdb.py errored -- $(echo "$out" | tail -1)" 1
 
 date=$(python3 -c "
 import json
-print(json.loads(open('data/gex/metrics.jsonl').read().strip().split(chr(10))[-1])['trade_date'])
-")
-git -c user.email=mikhailhoh@gmail.com -c user.name="Mikhail Hoh" \
-    commit -q -m "Record GEX snapshot for $date" || die "commit failed"
+rows=[json.loads(l) for l in open('data/gex/metrics.jsonl')]
+print(max(r['trade_date'] for r in rows))
+" 2>/dev/null) || date=unknown
 
-for wait in 2 4 8 16 0; do
-  git push -u origin "$BRANCH" && { echo "record_gex: pushed snapshot for $date"; exit 0; }
-  [ "$wait" = 0 ] && break
-  echo "record_gex: push failed, retrying in ${wait}s" >&2
-  sleep "$wait"
-done
-die "push failed after 5 attempts -- the commit is local only"
+if git diff --quiet -- data/gex/daily data/gex/metrics.jsonl; then
+  finish "no-op: chain still reports $date, already stored"
+fi
+finish "recorded $date"

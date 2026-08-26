@@ -6,9 +6,36 @@
 set -uo pipefail
 
 BRANCH=claude/prop-firm-strategies-bvor8w
+LOG=data/pead/routine.log
 cd "$(dirname "$0")/.." || exit 1
 
-die() { echo "fill_pead: $*" >&2; exit 1; }
+now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
+
+# Same heartbeat as bin/record_gex.sh, and for the same reason: a firing that
+# fetched nothing and a firing whose push failed are indistinguishable from
+# outside this container unless every run is made to leave a committed mark.
+finish() {
+  local outcome="$1"
+  echo "$(now) $outcome" >> "$LOG"
+  echo "fill_pead: $outcome"
+
+  git add "$LOG" data/pead/av_earnings.json data/av 2>/dev/null
+  git diff --cached --quiet && exit "${2:-0}"
+
+  git -c user.email=mikhailhoh@gmail.com -c user.name="Mikhail Hoh" \
+      commit -q -m "PEAD basket run: $outcome" || {
+        echo "fill_pead: commit failed" >&2; exit 1; }
+
+  for wait in 2 4 8 16 0; do
+    git push -u origin "$BRANCH" 2>&1 | tail -1 && exit "${2:-0}"
+    [ "$wait" = 0 ] && break
+    sleep "$wait"
+  done
+  echo "fill_pead: push failed after 5 attempts, the commit is local only" >&2
+  exit 1
+}
+
+die() { finish "FAILED: $*" 1; }
 
 git rev-parse --git-dir >/dev/null 2>&1 || die "not a git repository: $PWD"
 git checkout "$BRANCH" 2>&1 | tail -1 || die "cannot checkout $BRANCH"
@@ -44,23 +71,12 @@ if added:
 print(f"fill_pead: added {len(added)} -> {len(have)}/{len(names)}")
 PY
 
-git add data/pead/av_earnings.json data/av 2>/dev/null
-if git diff --cached --quiet; then
-  echo "fill_pead: nothing new to commit"
-  exit 0
+total=$(python3 -c "import json; print(len(json.load(open('data/pead/av_earnings.json'))))")
+
+if git diff --quiet -- data/pead/av_earnings.json data/av; then
+  finish "no-op: nothing new landed, basket still ${total}/20"
 fi
 
-total=$(python3 -c "import json; print(len(json.load(open('data/pead/av_earnings.json'))))")
-python3 src/run_concordant.py > /dev/null || die "run_concordant.py failed on the new basket"
-python3 src/pead_loo.py       > /dev/null || die "pead_loo.py failed on the new basket"
-
-git -c user.email=mikhailhoh@gmail.com -c user.name="Mikhail Hoh" \
-    commit -q -m "Extend the PEAD basket to ${total}/20 names" || die "commit failed"
-
-for wait in 2 4 8 16 0; do
-  git push -u origin "$BRANCH" && { echo "fill_pead: pushed, basket now ${total}/20"; exit 0; }
-  [ "$wait" = 0 ] && break
-  echo "fill_pead: push failed, retrying in ${wait}s" >&2
-  sleep "$wait"
-done
-die "push failed after 5 attempts -- the commit is local only"
+python3 src/run_concordant.py > /dev/null || die "run_concordant.py errored on the new basket"
+python3 src/pead_loo.py       > /dev/null || die "pead_loo.py errored on the new basket"
+finish "basket now ${total}/20"
