@@ -1,0 +1,70 @@
+# Daily data collection.
+#
+# This used to be two scheduled Claude Routines. They fire reliably and every
+# run is recorded as succeeded, but across a week not one of them ever landed a
+# commit -- including after the scripts were rewritten to commit a log line on
+# every code path, failures included. The runs are not observable from the
+# session that created them, so the cause could not be pinned down.
+#
+# Actions removes the question. It runs on GitHub's own infrastructure, writes
+# with the repository's own token, and every run leaves a log anyone can read.
+name: collect
+
+on:
+  schedule:
+    # Dealer gamma, 22:05 UTC on weekdays: after the US close, while the CBOE
+    # delayed chain still reports the session that just settled.
+    - cron: '5 22 * * 1-5'
+    # Earnings consensus, 06:00 UTC daily: Alpha Vantage's free tier resets on
+    # a daily quota, so a name refused yesterday is retried today.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Which collector to run'
+        required: true
+        default: both
+        type: choice
+        options: [both, gex, pead]
+
+permissions:
+  contents: write
+
+concurrency:
+  # Two collectors committing to one branch would race on the push.
+  group: collect-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/prop-firm-strategies-bvor8w
+          # The collectors pull and push, so they need real history, not the
+          # single commit a shallow clone would give them.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install --quiet numpy pandas
+
+      - name: Record dealer gamma
+        if: |
+          github.event.schedule == '5 22 * * 1-5' ||
+          contains(fromJSON('["both","gex"]'), inputs.job)
+        run: bash bin/record_gex.sh
+
+      - name: Fill the earnings basket
+        if: |
+          github.event.schedule == '0 6 * * *' ||
+          contains(fromJSON('["both","pead"]'), inputs.job)
+        env:
+          # Optional: without it the fetcher falls back to the key already in
+          # src/av_earnings.py. Set it under Settings -> Secrets to rotate the
+          # key without touching the source.
+          ALPHAVANTAGE_KEY: ${{ secrets.ALPHAVANTAGE_KEY }}
+        run: bash bin/fill_pead.sh
