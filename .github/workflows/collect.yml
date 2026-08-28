@@ -63,8 +63,14 @@ jobs:
           github.event.schedule == '0 6 * * *' ||
           contains(fromJSON('["both","pead"]'), inputs.job)
         env:
-          # Optional: without it the fetcher falls back to the key already in
-          # src/av_earnings.py. Set it under Settings -> Secrets to rotate the
-          # key without touching the source.
+          # Required. src/av_earnings.py has no fallback -- it exits rather
+          # than fetch without a key, so that a missing secret fails loudly
+          # here instead of looking like an empty day's quota.
           ALPHAVANTAGE_KEY: ${{ secrets.ALPHAVANTAGE_KEY }}
-        run: bash bin/fill_pead.sh
+        run: |
+          if [ -z "${ALPHAVANTAGE_KEY:-}" ]; then
+            echo "::error::ALPHAVANTAGE_KEY is not set. Add it under" \
+                 "Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          bash bin/fill_pead.sh
