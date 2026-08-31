@@ -75,10 +75,28 @@ def build(events_path=os.path.join(DATA, "av_earnings.json"),
     return df, rets, sessions
 
 
-def sides(df, concordant=True, min_surprise=0.0):
-    """Trade direction under the concordance rule, or price reaction alone."""
+def sides(df, concordant=True, min_surprise=0.0, min_surprise_pct=None):
+    """Trade direction under the concordance rule, or price reaction alone.
+
+    Two different thresholds, and they are not interchangeable. `min_surprise`
+    is in EPS currency: 0.05 means five cents. `min_surprise_pct` is the
+    surprise scaled by the estimate, which is what a "minimum absolute surprise
+    percent" setting means, and is the only one comparable across names earning
+    thirty cents and names earning nine dollars.
+
+    A percentage needs a denominator, and build() leaves surprise_pct null
+    wherever the estimate is too near zero to divide by. Those announcements
+    cannot clear a percentage bar, so they are dropped rather than waved
+    through -- silently keeping them would let the filter's loosest cases be
+    exactly the ones it cannot measure.
+    """
     beat = df["surprise"] > min_surprise
     miss = df["surprise"] < -min_surprise
+    if min_surprise_pct is not None:
+        pct = pd.to_numeric(df["surprise_pct"], errors="coerce")
+        big = pct.abs() >= min_surprise_pct
+        beat &= big
+        miss &= big
     up = df["reaction"] > 0
     down = df["reaction"] < 0
     if concordant:
