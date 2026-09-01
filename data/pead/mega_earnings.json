@@ -1,0 +1,2052 @@
+{
+ "AAPL": [
+  {
+   "before_open": false,
+   "date": "2014-01-27",
+   "estimate": 0.5025,
+   "reported": 0.5175,
+   "surprise": 0.015000000000000013,
+   "surprise_pct": 0.029850746268656747
+  },
+  {
+   "before_open": false,
+   "date": "2014-04-23",
+   "estimate": 0.365,
+   "reported": 0.415,
+   "surprise": 0.04999999999999999,
+   "surprise_pct": 0.13698630136986298
+  },
+  {
+   "before_open": false,
+   "date": "2014-07-22",
+   "estimate": 0.3075,
+   "reported": 0.32,
+   "surprise": 0.012500000000000011,
+   "surprise_pct": 0.040650406504065074
+  },
+  {
+   "before_open": false,
+   "date": "2014-10-20",
+   "estimate": 0.3275,
+   "reported": 0.355,
+   "surprise": 0.02749999999999997,
+   "surprise_pct": 0.08396946564885487
+  },
+  {
+   "before_open": false,
+   "date": "2015-01-27",
+   "estimate": 0.65,
+   "reported": 0.765,
+   "surprise": 0.11499999999999999,
+   "surprise_pct": 0.1769230769230769
+  },
+  {
+   "before_open": false,
+   "date": "2015-04-27",
+   "estimate": 0.54,
+   "reported": 0.5825,
+   "surprise": 0.04249999999999998,
+   "surprise_pct": 0.07870370370370366
+  },
+  {
+   "before_open": false,
+   "date": "2015-07-21",
+   "estimate": 0.4525,
+   "reported": 0.4625,
+   "surprise": 0.010000000000000009,
+   "surprise_pct": 0.022099447513812175
+  },
+  {
+   "before_open": false,
+   "date": "2015-10-27",
+   "estimate": 0.47,
+   "reported": 0.49,
+   "surprise": 0.020000000000000018,
+   "surprise_pct": 0.04255319148936174
+  },
+  {
+   "before_open": false,
+   "date": "2016-01-26",
+   "estimate": 0.8075,
+   "reported": 0.82,
+   "surprise": 0.012499999999999956,
+   "surprise_pct": 0.015479876160990657
+  },
+  {
+   "before_open": false,
+   "date": "2016-04-26",
+   "estimate": 0.5,
+   "reported": 0.475,
+   "surprise": -0.025000000000000022,
+   "surprise_pct": -0.050000000000000044
+  },
+  {
+   "before_open": false,
+   "date": "2016-07-26",
+   "estimate": 0.345,
+   "reported": 0.355,
+   "surprise": 0.010000000000000009,
+   "surprise_pct": 0.02898550724637684
+  },
+  {
+   "before_open": false,
+   "date": "2016-10-25",
+   "estimate": 0.415,
+   "reported": 0.4175,
+   "surprise": 0.0025000000000000022,
+   "surprise_pct": 0.006024096385542174
+  },
+  {
+   "before_open": false,
+   "date": "2017-01-31",
+   "estimate": 0.8025,
+   "reported": 0.84,
+   "surprise": 0.03749999999999998,
+   "surprise_pct": 0.04672897196261679
+  },
+  {
+   "before_open": false,
+   "date": "2017-05-02",
+   "estimate": 0.505,
+   "reported": 0.525,
+   "surprise": 0.020000000000000018,
+   "surprise_pct": 0.03960396039603964
+  },
+  {
+   "before_open": false,
+   "date": "2017-08-01",
+   "estimate": 0.3925,
+   "reported": 0.4175,
+   "surprise": 0.024999999999999967,
+   "surprise_pct": 0.06369426751592348
+  },
+  {
+   "before_open": false,
+   "date": "2017-11-02",
+   "estimate": 0.4675,
+   "reported": 0.5175,
+   "surprise": 0.04999999999999993,
+   "surprise_pct": 0.10695187165775386
+  },
+  {
+   "before_open": false,
+   "date": "2018-02-01",
+   "estimate": 0.965,
+   "reported": 0.9725,
+   "surprise": 0.007500000000000062,
+   "surprise_pct": 0.007772020725388666
+  },
+  {
+   "before_open": false,
+   "date": "2018-05-01",
+   "estimate": 0.6725,
+   "reported": 0.6825,
+   "surprise": 0.010000000000000009,
+   "surprise_pct": 0.014869888475836444
+  },
+  {
+   "before_open": false,
+   "date": "2018-07-31",
+   "estimate": 0.545,
+   "reported": 0.585,
+   "surprise": 0.039999999999999925,
+   "surprise_pct": 0.07339449541284389
+  },
+  {
+   "before_open": false,
+   "date": "2018-11-01",
+   "estimate": 0.7,
+   "reported": 0.73,
+   "surprise": 0.030000000000000027,
+   "surprise_pct": 0.0428571428571429
+  },
+  {
+   "before_open": false,
+   "date": "2019-01-29",
+   "estimate": 1.04,
+   "reported": 1.05,
+   "surprise": 0.010000000000000009,
+   "surprise_pct": 0.009615384615384623
+  },
+  {
+   "before_open": false,
+   "date": "2019-04-30",
+   "estimate": 0.59,
+   "reported": 0.62,
+   "surprise": 0.030000000000000027,
+   "surprise_pct": 0.05084745762711869
+  },
+  {
+   "before_open": false,
+   "date": "2019-07-30",
+   "estimate": 0.53,
+   "reported": 0.55,
+   "surprise": 0.020000000000000018,
+   "surprise_pct": 0.03773584905660381
+  },
+  {
+   "before_open": false,
+   "date": "2019-10-30",
+   "estimate": 0.71,
+   "reported": 0.76,
+   "surprise": 0.050000000000000044,
+   "surprise_pct": 0.07042253521126768
+  },
+  {
+   "before_open": false,
+   "date": "2020-01-28",
+   "estimate": 1.14,
+   "reported": 1.25,
+   "surprise": 0.1100000000000001,
+   "surprise_pct": 0.09649122807017553
+  },
+  {
+   "before_open": false,
+   "date": "2020-04-30",
+   "estimate": 0.56,
+   "reported": 0.64,
+   "surprise": 0.07999999999999996,
+   "surprise_pct": 0.14285714285714277
+  },
+  {
+   "before_open": false,
+   "date": "2020-07-30",
+   "estimate": 0.51,
+   "reported": 0.65,
+   "surprise": 0.14,
+   "surprise_pct": 0.27450980392156865
+  },
+  {
+   "before_open": false,
+   "date": "2020-10-29",
+   "estimate": 0.7,
+   "reported": 0.73,
+   "surprise": 0.030000000000000027,
+   "surprise_pct": 0.0428571428571429
+  },
+  {
+   "before_open": false,
+   "date": "2021-01-27",
+   "estimate": 1.42,
+   "reported": 1.68,
+   "surprise": 0.26,
+   "surprise_pct": 0.18309859154929578
+  },
+  {
+   "before_open": false,
+   "date": "2021-04-28",
+   "estimate": 0.98,
+   "reported": 1.4,
+   "surprise": 0.41999999999999993,
+   "surprise_pct": 0.4285714285714285
+  },
+  {
+   "before_open": false,
+   "date": "2021-07-27",
+   "estimate": 1.01,
+   "reported": 1.3,
+   "surprise": 0.29000000000000004,
+   "surprise_pct": 0.28712871287128716
+  },
+  {
+   "before_open": false,
+   "date": "2021-10-28",
+   "estimate": 1.24,
+   "reported": 1.24,
+   "surprise": 0.0,
+   "surprise_pct": 0.0
+  },
+  {
+   "before_open": false,
+   "date": "2022-01-27",
+   "estimate": 1.89,
+   "reported": 2.1,
+   "surprise": 0.2100000000000002,
+   "surprise_pct": 0.11111111111111122
+  },
+  {
+   "before_open": false,
+   "date": "2022-04-28",
+   "estimate": 1.43,
+   "reported": 1.52,
+   "surprise": 0.09000000000000008,
+   "surprise_pct": 0.062937062937063
+  },
+  {
+   "before_open": false,
+   "date": "2022-07-28",
+   "estimate": 1.15,
+   "reported": 1.2,
+   "surprise": 0.050000000000000044,
+   "surprise_pct": 0.04347826086956526
+  },
+  {
+   "before_open": false,
+   "date": "2022-10-27",
+   "estimate": 1.27,
+   "reported": 1.29,
+   "surprise": 0.020000000000000018,
+   "surprise_pct": 0.015748031496063006
+  },
+  {
+   "before_open": false,
+   "date": "2023-02-02",
+   "estimate": 1.95,
+   "reported": 1.88,
+   "surprise": -0.07000000000000006,
+   "surprise_pct": -0.03589743589743593
+  },
+  {
+   "before_open": false,
+   "date": "2023-05-04",
+   "estimate": 1.43,
+   "reported": 1.52,
+   "surprise": 0.09000000000000008,
+   "surprise_pct": 0.062937062937063
+  },
+  {
+   "before_open": false,
+   "date": "2023-08-03",
+   "estimate": 1.19,
+   "reported": 1.26,
+   "surprise": 0.07000000000000006,
+   "surprise_pct": 0.05882352941176476
+  },
+  {
+   "before_open": false,
+   "date": "2023-11-02",
+   "estimate": 1.39,
+   "reported": 1.46,
+   "surprise": 0.07000000000000006,
+   "surprise_pct": 0.050359712230215875
+  },
+  {
+   "before_open": false,
+   "date": "2024-02-01",
+   "estimate": 2.11,
+   "reported": 2.18,
+   "surprise": 0.07000000000000028,
+   "surprise_pct": 0.0331753554502371
+  },
+  {
+   "before_open": false,
+   "date": "2024-05-02",
+   "estimate": 1.5,
+   "reported": 1.53,
+   "surprise": 0.030000000000000027,
+   "surprise_pct": 0.020000000000000018
+  },
+  {
+   "before_open": false,
+   "date": "2024-08-01",
+   "estimate": 1.34,
+   "reported": 1.4,
+   "surprise": 0.05999999999999983,
+   "surprise_pct": 0.04477611940298495
+  },
+  {
+   "before_open": false,
+   "date": "2024-10-31",
+   "estimate": 0.95,
+   "reported": 0.97,
+   "surprise": 0.020000000000000018,
+   "surprise_pct": 0.02105263157894739
+  },
+  {
+   "before_open": false,
+   "date": "2025-01-30",
+   "estimate": 2.34,
+   "reported": 2.4,
+   "surprise": 0.06000000000000005,
+   "surprise_pct": 0.025641025641025664
+  },
+  {
+   "before_open": false,
+   "date": "2025-05-01",
+   "estimate": 1.62,
+   "reported": 1.65,
+   "surprise": 0.029999999999999805,
+   "surprise_pct": 0.018518518518518396
+  },
+  {
+   "before_open": false,
+   "date": "2025-07-31",
+   "estimate": 1.43,
+   "reported": 1.57,
+   "surprise": 0.14000000000000012,
+   "surprise_pct": 0.09790209790209799
+  },
+  {
+   "before_open": false,
+   "date": "2025-10-30",
+   "estimate": 1.77,
+   "reported": 1.85,
+   "surprise": 0.08000000000000007,
+   "surprise_pct": 0.04519774011299439
+  },
+  {
+   "before_open": false,
+   "date": "2026-01-29",
+   "estimate": 2.67,
+   "reported": 2.84,
+   "surprise": 0.16999999999999993,
+   "surprise_pct": 0.0636704119850187
+  },
+  {
+   "before_open": false,
+   "date": "2026-04-30",
+   "estimate": 1.94,
+   "reported": 2.01,
+   "surprise": 0.06999999999999984,
+   "surprise_pct": 0.036082474226804044
+  },
+  {
+   "before_open": false,
+   "date": "2026-07-30",
+   "estimate": 1.88,
+   "reported": 2.02,
+   "surprise": 0.14000000000000012,
+   "surprise_pct": 0.07446808510638304
+  }
+ ],
+ "AMZN": [
+  {
+   "before_open": false,
+   "date": "2014-01-30",
+   "estimate": 0.03,
+   "reported": 0.03,
+   "surprise": 0.0,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2014-04-24",
+   "estimate": 0.01,
+   "reported": 0.01,
+   "surprise": 0.0,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2014-07-24",
+   "estimate": -0.01,
+   "reported": -0.01,
+   "surprise": 0.0,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2014-10-23",
+   "estimate": -0.04,
+   "reported": -0.05,
+   "surprise": -0.010000000000000002,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2015-01-29",
+   "estimate": 0.01,
+   "reported": 0.02,
+   "surprise": 0.01,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2015-04-23",
+   "estimate": -0.01,
+   "reported": -0.01,
+   "surprise": 0.0,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2015-07-23",
+   "estimate": -0.01,
+   "reported": 0.01,
+   "surprise": 0.02,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2015-10-22",
+   "estimate": -0.01,
+   "reported": 0.01,
+   "surprise": 0.02,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2016-01-28",
+   "estimate": 0.08,
+   "reported": 0.05,
+   "surprise": -0.03,
+   "surprise_pct": -0.375
+  },
+  {
+   "before_open": false,
+   "date": "2016-04-28",
+   "estimate": 0.03,
+   "reported": 0.05,
+   "surprise": 0.020000000000000004,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2016-07-28",
+   "estimate": 0.05,
+   "reported": 0.09,
+   "surprise": 0.039999999999999994,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2016-10-27",
+   "estimate": 0.04,
+   "reported": 0.03,
+   "surprise": -0.010000000000000002,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2017-02-02",
+   "estimate": 0.07,
+   "reported": 0.08,
+   "surprise": 0.009999999999999995,
+   "surprise_pct": 0.14285714285714277
+  },
+  {
+   "before_open": false,
+   "date": "2017-04-27",
+   "estimate": 0.06,
+   "reported": 0.07,
+   "surprise": 0.010000000000000009,
+   "surprise_pct": 0.16666666666666682
+  },
+  {
+   "before_open": false,
+   "date": "2017-07-27",
+   "estimate": 0.07,
+   "reported": 0.02,
+   "surprise": -0.05,
+   "surprise_pct": -0.7142857142857143
+  },
+  {
+   "before_open": false,
+   "date": "2017-10-26",
+   "estimate": 0.03,
+   "reported": 0.03,
+   "surprise": 0.0,
+   "surprise_pct": null
+  },
+  {
+   "before_open": false,
+   "date": "2018-02-01",
+   "estimate": 0.09,
+   "reported": 0.11,
+   "surprise": 0.020000000000000004,
+   "surprise_pct": 0.22222222222222227
+  },
+  {
+   "before_open": false,
+   "date": "2018-04-26",
+   "estimate": 0.06,
+   "reported": 0.16,
+   "surprise": 0.1,
+   "surprise_pct": 1.6666666666666667
+  },
+  {
+   "before_open": false,
+   "date": "2018-07-26",
+   "estimate": 0.13,
+   "reported": 0.25,
+   "surprise": 0.12,
+   "surprise_pct": 0.923076923076923
+  },
+  {
+   "before_open": false,
+   "date": "2018-10-25",
+   "estimate": 0.15,
+   "reported": 0.29,
+   "surprise": 0.13999999999999999,
+   "surprise_pct": 0.9333333333333332
+  },
+  {
+   "before_open": false,
+   "date": "2019-01-31",
+   "estimate": 0.28,
+   "reported": 0.3,
+   "surprise": 0.019999999999999962,
+   "surprise_pct": 0.07142857142857129
+  },
+  {
+   "before_open": false,
+   "date": "2019-04-25",
+   "estimate": 0.23,
+   "reported": 0.35,
+   "surprise": 0.11999999999999997,
+   "surprise_pct": 0.5217391304347825
+  },
+  {
+   "before_open": false,
+   "date": "2019-07-25",
+   "estimate": 0.28,
+   "reported": 0.26,
+   "surprise": -0.020000000000000018,
+   "surprise_pct": -0.07142857142857148
+  },
+  {
+   "before_open": false,
+   "date": "2019-10-24",
+   "estimate": 0.22,
+   "reported": 0.21,
+   "surprise": -0.010000000000000009,
+   "surprise_pct": -0.0454545454545455
+  },
+  {
+   "before_open": false,
+   "date": "2020-01-30",
+   "estimate": 0.2,
+   "reported": 0.32,
+   "surprise": 0.12,
+   "surprise_pct": 0.6
+  },
+  {
+   "before_open": false,
+   "date": "2020-04-30",
+   "estimate": 0.31,
+   "reported": 0.25,
+   "surprise": -0.06,
+   "surprise_pct": -0.1935483870967742
+  },
+  {
+   "before_open": false,
+   "date": "2020-07-30",
+   "estimate": 0.08,
+   "reported": 0.52,
+   "surprise": 0.44,
+   "surprise_pct": 5.5
+  },
+  {
+   "before_open": false,
+   "date": "2020-10-29",
+   "estimate": 0.38,
+   "reported": 0.62,
+   "surprise": 0.24,
+   "surprise_pct": 0.631578947368421
+  },
+  {
+   "before_open": false,
+   "date": "2021-02-02",
+   "estimate": 0.35,
+   "reported": 0.7,
+   "surprise": 0.35,
+   "surprise_pct": 1.0
+  },
+  {
+   "before_open": false,
+   "date": "2021-04-29",
+   "estimate": 0.47,
+   "reported": 0.79,
+   "surprise": 0.32000000000000006,
+   "surprise_pct": 0.6808510638297874
+  },
+  {
+   "before_open": false,
+   "date": "2021-07-29",
+   "estimate": 0.61,
+   "reported": 0.76,
+   "surprise": 0.15000000000000002,
+   "surprise_pct": 0.24590163934426235
+  },
+  {
+   "before_open": false,
+   "date": "2021-10-28",
+   "estimate": 0.44,
+   "reported": 0.31,
+   "surprise": -0.13,
+   "surprise_pct": -0.29545454545454547
+  },
+  {
+   "before_open": false,
+   "date": "2022-02-03",
+   "estimate": 0.18,
+   "reported": 1.39,
+   "surprise": 1.21,
+   "surprise_pct": 6.722222222222222
+  },
+  {
+   "before_open": false,
+   "date": "2022-04-28",
+   "estimate": 0.42,
+   "reported": -0.38,
+   "surprise": -0.8,
+   "surprise_pct": -1.9047619047619049
+  },
+  {
+   "before_open": false,
+   "date": "2022-07-28",
+   "estimate": 0.12,
+   "reported": -0.2,
+   "surprise": -0.32,
+   "surprise_pct": -2.666666666666667
+  },
+  {
+   "before_open": false,
+   "date": "2022-10-27",
+   "estimate": 0.21,
+   "reported": 0.28,
+   "surprise": 0.07000000000000003,
+   "surprise_pct": 0.33333333333333354
+  },
+  {
+   "before_open": false,
+   "date": "2023-02-02",
+   "estimate": 0.17,
+   "reported": 0.03,
+   "surprise": -0.14,
+   "surprise_pct": -0.823529411764706
+  },
+  {
+   "before_open": false,
+   "date": "2023-04-27",
+   "estimate": 0.21,
+   "reported": 0.31,
+   "surprise": 0.1,
+   "surprise_pct": 0.4761904761904762
+  },
+  {
+   "before_open": false,
+   "date": "2023-08-03",
+   "estimate": 0.34,
+   "reported": 0.65,
+   "surprise": 0.31,
+   "surprise_pct": 0.9117647058823529
+  },
+  {
+   "before_open": false,
+   "date": "2023-10-26",
+   "estimate": 0.58,
+   "reported": 0.94,
+   "surprise": 0.36,
+   "surprise_pct": 0.6206896551724138
+  },
+  {
+   "before_open": false,
+   "date": "2024-02-01",
+   "estimate": 0.8,
+   "reported": 1.0,
+   "surprise": 0.19999999999999996,
+   "surprise_pct": 0.24999999999999994
+  },
+  {
+   "before_open": false,
+   "date": "2024-04-30",
+   "estimate": 0.82,
+   "reported": 0.98,
+   "surprise": 0.16000000000000003,
+   "surprise_pct": 0.19512195121951226
+  },
+  {
+   "before_open": false,
+   "date": "2024-08-01",
+   "estimate": 1.02,
+   "reported": 1.26,
+   "surprise": 0.24,
+   "surprise_pct": 0.23529411764705882
+  },
+  {
+   "before_open": false,
+   "date": "2024-10-31",
+   "estimate": 1.14,
+   "reported": 1.43,
+   "surprise": 0.29000000000000004,
+   "surprise_pct": 0.25438596491228077
+  },
+  {
+   "before_open": true,
+   "date": "2025-02-06",
+   "estimate": 1.4837,
+   "reported": 1.86,
+   "surprise": 0.3763000000000001,
+   "surprise_pct": 0.25362270000674
+  },
+  {
+   "before_open": false,
+   "date": "2025-05-01",
+   "estimate": 1.36,
+   "reported": 1.59,
+   "surprise": 0.22999999999999998,
+   "surprise_pct": 0.1691176470588235
+  },
+  {
+   "before_open": false,
+   "date": "2025-07-31",
+   "estimate": 1.32,
+   "reported": 1.68,
+   "surprise": 0.3599999999999999,
+   "surprise_pct": 0.2727272727272726
+  },
+  {
+   "before_open": false,
+   "date": "2025-10-30",
+   "estimate": 1.56,
+   "reported": 1.95,
+   "surprise": 0.3899999999999999,
+   "surprise_pct": 0.24999999999999992
+  },
+  {
+   "before_open": false,
+   "date": "2026-02-05",
+   "estimate": 1.95,
+   "reported": 1.95,
+   "surprise": 0.0,
+   "surprise_pct": 0.0
+  },
+  {
+   "before_open": false,
+   "date": "2026-04-29",
+   "estimate": 1.64,
+   "reported": 2.78,
+   "surprise": 1.14,
+   "surprise_pct": 0.6951219512195121
+  },
+  {
+   "before_open": false,
+   "date": "2026-07-30",
+   "estimate": 1.83,
+   "reported": 1.88,
+   "surprise": 0.04999999999999982,
+   "surprise_pct": 0.0273224043715846
+  }
+ ],
+ "GOOGL": [
+  {
+   "before_open": true,
+   "date": "2014-01-30",
+   "estimate": 0.305,
+   "reported": 0.3005,
+   "surprise": -0.004500000000000004,
+   "surprise_pct": -0.01475409836065575
+  },
+  {
+   "before_open": true,
+   "date": "2014-04-16",
+   "estimate": 0.3205,
+   "reported": 0.3135,
+   "surprise": -0.007000000000000006,
+   "surprise_pct": -0.021840873634945416
+  },
+  {
+   "before_open": true,
+   "date": "2014-07-17",
+   "estimate": 0.312,
+   "reported": 0.304,
+   "surprise": -0.008000000000000007,
+   "surprise_pct": -0.025641025641025664
+  },
+  {
+   "before_open": false,
+   "date": "2014-10-16",
+   "estimate": 0.3265,
+   "reported": 0.3175,
+   "surprise": -0.009000000000000008,
+   "surprise_pct": -0.02756508422664627
+  },
+  {
+   "before_open": false,
+   "date": "2015-01-29",
+   "estimate": 0.3555,
+   "reported": 0.344,
+   "surprise": -0.01150000000000001,
+   "surprise_pct": -0.032348804500703265
+  },
+  {
+   "before_open": false,
+   "date": "2015-04-23",
+   "estimate": 0.33,
+   "reported": 0.3285,
+   "surprise": -0.0015000000000000013,
+   "surprise_pct": -0.00454545454545455
+  },
+  {
+   "before_open": false,
+   "date": "2015-07-16",
+   "estimate": 0.335,
+   "reported": 0.3495,
+   "surprise": 0.014499999999999957,
+   "surprise_pct": 0.04328358208955211
+  },
+  {
+   "before_open": false,
+   "date": "2015-10-22",
+   "estimate": 0.3605,
+   "reported": 0.3675,
+   "surprise": 0.007000000000000006,
+   "surprise_pct": 0.01941747572815536
+  },
+  {
+   "before_open": false,
+   "date": "2016-02-01",
+   "estimate": 0.4055,
+   "reported": 0.4335,
+   "surprise": 0.02799999999999997,
+   "surprise_pct": 0.06905055487053013
+  },
+  {
+   "before_open": false,
+   "date": "2016-04-21",
+   "estimate": 0.3985,
+   "reported": 0.375,
+   "surprise": -0.02350000000000002,
+   "surprise_pct": -0.058971141781681356
+  },
+  {
+   "before_open": false,
+   "date": "2016-07-28",
+   "estimate": 0.4015,
+   "reported": 0.421,
+   "surprise": 0.019499999999999962,
+   "surprise_pct": 0.04856787048567861
+  },
+  {
+   "before_open": false,
+   "date": "2016-10-27",
+   "estimate": 0.4315,
+   "reported": 0.453,
+   "surprise": 0.02150000000000002,
+   "surprise_pct": 0.0498261877172654
+  },
+  {
+   "before_open": false,
+   "date": "2017-01-26",
+   "estimate": 0.4825,
+   "reported": 0.468,
+   "surprise": -0.014499999999999957,
+   "surprise_pct": -0.030051813471502504
+  },
+  {
+   "before_open": false,
+   "date": "2017-04-27",
+   "estimate": 0.3695,
+   "reported": 0.3865,
+   "surprise": 0.017000000000000015,
+   "surprise_pct": 0.04600811907983766
+  },
+  {
+   "before_open": false,
+   "date": "2017-07-24",
+   "estimate": 0.2245,
+   "reported": 0.2505,
+   "surprise": 0.025999999999999995,
+   "surprise_pct": 0.11581291759465477
+  },
+  {
+   "before_open": false,
+   "date": "2017-10-26",
+   "estimate": 0.4165,
+   "reported": 0.4785,
+   "surprise": 0.062,
+   "surprise_pct": 0.14885954381752703
+  },
+  {
+   "before_open": false,
+   "date": "2018-02-01",
+   "estimate": 0.499,
+   "reported": 0.485,
+   "surprise": -0.014000000000000012,
+   "surprise_pct": -0.028056112224448922
+  },
+  {
+   "before_open": false,
+   "date": "2018-04-23",
+   "estimate": 0.464,
+   "reported": 0.6665,
+   "surprise": 0.20249999999999996,
+   "surprise_pct": 0.4364224137931033
+  },
+  {
+   "before_open": false,
+   "date": "2018-07-23",
+   "estimate": 0.4795,
+   "reported": 0.227,
+   "surprise": -0.25249999999999995,
+   "surprise_pct": -0.5265901981230448
+  },
+  {
+   "before_open": false,
+   "date": "2018-10-25",
+   "estimate": 0.521,
+   "reported": 0.653,
+   "surprise": 0.132,
+   "surprise_pct": 0.2533589251439539
+  },
+  {
+   "before_open": false,
+   "date": "2019-02-04",
+   "estimate": 0.541,
+   "reported": 0.6385,
+   "surprise": 0.09749999999999992,
+   "surprise_pct": 0.18022181146025862
+  },
+  {
+   "before_open": false,
+   "date": "2019-04-29",
+   "estimate": 0.5305,
+   "reported": 0.475,
+   "surprise": -0.055499999999999994,
+   "surprise_pct": -0.10461828463713477
+  },
+  {
+   "before_open": false,
+   "date": "2019-07-25",
+   "estimate": 0.565,
+   "reported": 0.7105,
+   "surprise": 0.14550000000000007,
+   "surprise_pct": 0.25752212389380547
+  },
+  {
+   "before_open": false,
+   "date": "2019-10-28",
+   "estimate": 0.621,
+   "reported": 0.506,
+   "surprise": -0.11499999999999999,
+   "surprise_pct": -0.18518518518518517
+  },
+  {
+   "before_open": false,
+   "date": "2020-02-03",
+   "estimate": 0.6265,
+   "reported": 0.7675,
+   "surprise": 0.14100000000000001,
+   "surprise_pct": 0.22505985634477257
+  },
+  {
+   "before_open": false,
+   "date": "2020-04-28",
+   "estimate": 0.519,
+   "reported": 0.4935,
+   "surprise": -0.025500000000000023,
+   "surprise_pct": -0.04913294797687866
+  },
+  {
+   "before_open": false,
+   "date": "2020-07-30",
+   "estimate": 0.41,
+   "reported": 0.51,
+   "surprise": 0.10000000000000003,
+   "surprise_pct": 0.24390243902439035
+  },
+  {
+   "before_open": false,
+   "date": "2020-10-29",
+   "estimate": 0.56,
+   "reported": 0.82,
+   "surprise": 0.2599999999999999,
+   "surprise_pct": 0.4642857142857141
+  },
+  {
+   "before_open": false,
+   "date": "2021-02-02",
+   "estimate": 0.79,
+   "reported": 1.12,
+   "surprise": 0.33000000000000007,
+   "surprise_pct": 0.41772151898734183
+  },
+  {
+   "before_open": false,
+   "date": "2021-04-27",
+   "estimate": 0.78,
+   "reported": 1.31,
+   "surprise": 0.53,
+   "surprise_pct": 0.6794871794871795
+  },
+  {
+   "before_open": false,
+   "date": "2021-07-27",
+   "estimate": 0.96,
+   "reported": 1.36,
+   "surprise": 0.40000000000000013,
+   "surprise_pct": 0.4166666666666668
+  },
+  {
+   "before_open": false,
+   "date": "2021-10-26",
+   "estimate": 1.17,
+   "reported": 1.4,
+   "surprise": 0.22999999999999998,
+   "surprise_pct": 0.19658119658119658
+  },
+  {
+   "before_open": false,
+   "date": "2022-02-01",
+   "estimate": 1.36,
+   "reported": 1.53,
+   "surprise": 0.16999999999999993,
+   "surprise_pct": 0.12499999999999994
+  },
+  {
+   "before_open": false,
+   "date": "2022-04-26",
+   "estimate": 1.29,
+   "reported": 1.23,
+   "surprise": -0.06000000000000005,
+   "surprise_pct": -0.046511627906976785
+  },
+  {
+   "before_open": false,
+   "date": "2022-07-26",
+   "estimate": 1.27,
+   "reported": 1.21,
+   "surprise": -0.06000000000000005,
+   "surprise_pct": -0.04724409448818902
+  },
+  {
+   "before_open": false,
+   "date": "2022-10-25",
+   "estimate": 1.25,
+   "reported": 1.06,
+   "surprise": -0.18999999999999995,
+   "surprise_pct": -0.15199999999999997
+  },
+  {
+   "before_open": false,
+   "date": "2023-02-02",
+   "estimate": 1.19,
+   "reported": 1.05,
+   "surprise": -0.1399999999999999,
+   "surprise_pct": -0.11764705882352934
+  },
+  {
+   "before_open": false,
+   "date": "2023-04-25",
+   "estimate": 1.07,
+   "reported": 1.17,
+   "surprise": 0.09999999999999987,
+   "surprise_pct": 0.09345794392523352
+  },
+  {
+   "before_open": false,
+   "date": "2023-07-25",
+   "estimate": 1.34,
+   "reported": 1.44,
+   "surprise": 0.09999999999999987,
+   "surprise_pct": 0.07462686567164169
+  },
+  {
+   "before_open": false,
+   "date": "2023-10-24",
+   "estimate": 1.45,
+   "reported": 1.55,
+   "surprise": 0.10000000000000009,
+   "surprise_pct": 0.06896551724137938
+  },
+  {
+   "before_open": false,
+   "date": "2024-01-30",
+   "estimate": 1.59,
+   "reported": 1.64,
+   "surprise": 0.04999999999999982,
+   "surprise_pct": 0.031446540880503034
+  },
+  {
+   "before_open": false,
+   "date": "2024-04-25",
+   "estimate": 1.51,
+   "reported": 1.89,
+   "surprise": 0.3799999999999999,
+   "surprise_pct": 0.2516556291390728
+  },
+  {
+   "before_open": false,
+   "date": "2024-07-23",
+   "estimate": 1.85,
+   "reported": 1.89,
+   "surprise": 0.039999999999999813,
+   "surprise_pct": 0.02162162162162152
+  },
+  {
+   "before_open": false,
+   "date": "2024-10-29",
+   "estimate": 1.85,
+   "reported": 2.12,
+   "surprise": 0.27,
+   "surprise_pct": 0.14594594594594595
+  },
+  {
+   "before_open": false,
+   "date": "2025-02-04",
+   "estimate": 2.13,
+   "reported": 2.15,
+   "surprise": 0.020000000000000018,
+   "surprise_pct": 0.009389671361502356
+  },
+  {
+   "before_open": false,
+   "date": "2025-04-24",
+   "estimate": 2.01,
+   "reported": 2.81,
+   "surprise": 0.8000000000000003,
+   "surprise_pct": 0.3980099502487564
+  },
+  {
+   "before_open": false,
+   "date": "2025-07-23",
+   "estimate": 2.19,
+   "reported": 2.31,
+   "surprise": 0.1200000000000001,
+   "surprise_pct": 0.05479452054794526
+  },
+  {
+   "before_open": false,
+   "date": "2025-10-29",
+   "estimate": 2.32,
+   "reported": 2.87,
+   "surprise": 0.5500000000000003,
+   "surprise_pct": 0.23706896551724152
+  },
+  {
+   "before_open": false,
+   "date": "2026-02-04",
+   "estimate": 2.63,
+   "reported": 2.82,
+   "surprise": 0.18999999999999995,
+   "surprise_pct": 0.07224334600760454
+  },
+  {
+   "before_open": false,
+   "date": "2026-04-29",
+   "estimate": 2.53,
+   "reported": 5.11,
+   "surprise": 2.5800000000000005,
+   "surprise_pct": 1.0197628458498027
+  },
+  {
+   "before_open": false,
+   "date": "2026-07-22",
+   "estimate": 2.88,
+   "reported": 9.11,
+   "surprise": 6.2299999999999995,
+   "surprise_pct": 2.163194444444444
+  }
+ ],
+ "JPM": [
+  {
+   "before_open": true,
+   "date": "2014-01-14",
+   "estimate": 1.33,
+   "reported": 1.4,
+   "surprise": 0.06999999999999984,
+   "surprise_pct": 0.0526315789473683
+  },
+  {
+   "before_open": true,
+   "date": "2014-04-11",
+   "estimate": 1.4,
+   "reported": 1.28,
+   "surprise": -0.11999999999999988,
+   "surprise_pct": -0.08571428571428563
+  },
+  {
+   "before_open": true,
+   "date": "2014-07-15",
+   "estimate": 1.3,
+   "reported": 1.46,
+   "surprise": 0.15999999999999992,
+   "surprise_pct": 0.12307692307692301
+  },
+  {
+   "before_open": true,
+   "date": "2014-10-14",
+   "estimate": 1.38,
+   "reported": 1.62,
+   "surprise": 0.2400000000000002,
+   "surprise_pct": 0.17391304347826103
+  },
+  {
+   "before_open": true,
+   "date": "2015-01-14",
+   "estimate": 1.32,
+   "reported": 1.19,
+   "surprise": -0.13000000000000012,
+   "surprise_pct": -0.09848484848484856
+  },
+  {
+   "before_open": true,
+   "date": "2015-04-14",
+   "estimate": 1.41,
+   "reported": 1.45,
+   "surprise": 0.040000000000000036,
+   "surprise_pct": 0.028368794326241162
+  },
+  {
+   "before_open": true,
+   "date": "2015-07-14",
+   "estimate": 1.44,
+   "reported": 1.54,
+   "surprise": 0.10000000000000009,
+   "surprise_pct": 0.0694444444444445
+  },
+  {
+   "before_open": false,
+   "date": "2015-10-13",
+   "estimate": 1.37,
+   "reported": 1.32,
+   "surprise": -0.050000000000000044,
+   "surprise_pct": -0.036496350364963535
+  },
+  {
+   "before_open": true,
+   "date": "2016-01-14",
+   "estimate": 1.26,
+   "reported": 1.32,
+   "surprise": 0.06000000000000005,
+   "surprise_pct": 0.04761904761904766
+  },
+  {
+   "before_open": true,
+   "date": "2016-04-13",
+   "estimate": 1.26,
+   "reported": 1.35,
+   "surprise": 0.09000000000000008,
+   "surprise_pct": 0.0714285714285715
+  },
+  {
+   "before_open": true,
+   "date": "2016-07-14",
+   "estimate": 1.43,
+   "reported": 1.55,
+   "surprise": 0.1200000000000001,
+   "surprise_pct": 0.08391608391608399
+  },
+  {
+   "before_open": true,
+   "date": "2016-10-14",
+   "estimate": 1.39,
+   "reported": 1.58,
+   "surprise": 0.19000000000000017,
+   "surprise_pct": 0.1366906474820145
+  },
+  {
+   "before_open": true,
+   "date": "2017-01-13",
+   "estimate": 1.42,
+   "reported": 1.58,
+   "surprise": 0.16000000000000014,
+   "surprise_pct": 0.11267605633802827
+  },
+  {
+   "before_open": true,
+   "date": "2017-04-13",
+   "estimate": 1.51,
+   "reported": 1.65,
+   "surprise": 0.1399999999999999,
+   "surprise_pct": 0.0927152317880794
+  },
+  {
+   "before_open": true,
+   "date": "2017-07-14",
+   "estimate": 1.59,
+   "reported": 1.71,
+   "surprise": 0.11999999999999988,
+   "surprise_pct": 0.07547169811320747
+  },
+  {
+   "before_open": true,
+   "date": "2017-10-12",
+   "estimate": 1.66,
+   "reported": 1.76,
+   "surprise": 0.10000000000000009,
+   "surprise_pct": 0.06024096385542174
+  },
+  {
+   "before_open": true,
+   "date": "2018-01-12",
+   "estimate": 1.69,
+   "reported": 1.76,
+   "surprise": 0.07000000000000006,
+   "surprise_pct": 0.041420118343195304
+  },
+  {
+   "before_open": true,
+   "date": "2018-04-13",
+   "estimate": 2.29,
+   "reported": 2.26,
+   "surprise": -0.03000000000000025,
+   "surprise_pct": -0.013100436681222816
+  },
+  {
+   "before_open": true,
+   "date": "2018-07-13",
+   "estimate": 2.22,
+   "reported": 2.29,
+   "surprise": 0.06999999999999984,
+   "surprise_pct": 0.03153153153153146
+  },
+  {
+   "before_open": true,
+   "date": "2018-10-12",
+   "estimate": 2.26,
+   "reported": 2.34,
+   "surprise": 0.08000000000000007,
+   "surprise_pct": 0.03539823008849561
+  },
+  {
+   "before_open": true,
+   "date": "2019-02-26",
+   "estimate": 2.19,
+   "reported": 1.98,
+   "surprise": -0.20999999999999996,
+   "surprise_pct": -0.09589041095890409
+  },
+  {
+   "before_open": true,
+   "date": "2019-04-12",
+   "estimate": 2.35,
+   "reported": 2.65,
+   "surprise": 0.2999999999999998,
+   "surprise_pct": 0.127659574468085
+  },
+  {
+   "before_open": true,
+   "date": "2019-07-16",
+   "estimate": 2.49,
+   "reported": 2.82,
+   "surprise": 0.3299999999999996,
+   "surprise_pct": 0.13253012048192755
+  },
+  {
+   "before_open": true,
+   "date": "2019-10-15",
+   "estimate": 2.45,
+   "reported": 2.68,
+   "surprise": 0.22999999999999998,
+   "surprise_pct": 0.09387755102040815
+  },
+  {
+   "before_open": true,
+   "date": "2020-01-14",
+   "estimate": 2.36,
+   "reported": 2.57,
+   "surprise": 0.20999999999999996,
+   "surprise_pct": 0.08898305084745761
+  },
+  {
+   "before_open": true,
+   "date": "2020-04-14",
+   "estimate": 2.2,
+   "reported": 2.89,
+   "surprise": 0.69,
+   "surprise_pct": 0.3136363636363636
+  },
+  {
+   "before_open": true,
+   "date": "2020-07-14",
+   "estimate": 1.21,
+   "reported": 1.08,
+   "surprise": -0.1299999999999999,
+   "surprise_pct": -0.10743801652892554
+  },
+  {
+   "before_open": true,
+   "date": "2020-10-13",
+   "estimate": 2.24,
+   "reported": 3.09,
+   "surprise": 0.8499999999999996,
+   "surprise_pct": 0.37946428571428553
+  },
+  {
+   "before_open": true,
+   "date": "2021-01-15",
+   "estimate": 2.65,
+   "reported": 3.07,
+   "surprise": 0.41999999999999993,
+   "surprise_pct": 0.1584905660377358
+  },
+  {
+   "before_open": true,
+   "date": "2021-04-14",
+   "estimate": 3.06,
+   "reported": 4.59,
+   "surprise": 1.5299999999999998,
+   "surprise_pct": 0.49999999999999994
+  },
+  {
+   "before_open": true,
+   "date": "2021-07-13",
+   "estimate": 3.17,
+   "reported": 3.78,
+   "surprise": 0.6099999999999999,
+   "surprise_pct": 0.1924290220820189
+  },
+  {
+   "before_open": true,
+   "date": "2021-10-13",
+   "estimate": 3.0,
+   "reported": 3.55,
+   "surprise": 0.5499999999999998,
+   "surprise_pct": 0.18333333333333326
+  },
+  {
+   "before_open": true,
+   "date": "2022-01-14",
+   "estimate": 3.03,
+   "reported": 3.33,
+   "surprise": 0.30000000000000027,
+   "surprise_pct": 0.0990099009900991
+  },
+  {
+   "before_open": true,
+   "date": "2022-04-13",
+   "estimate": 2.71,
+   "reported": 2.63,
+   "surprise": -0.08000000000000007,
+   "surprise_pct": -0.029520295202952056
+  },
+  {
+   "before_open": true,
+   "date": "2022-07-14",
+   "estimate": 2.9,
+   "reported": 2.76,
+   "surprise": -0.14000000000000012,
+   "surprise_pct": -0.04827586206896556
+  },
+  {
+   "before_open": true,
+   "date": "2022-10-14",
+   "estimate": 2.85,
+   "reported": 3.12,
+   "surprise": 0.27,
+   "surprise_pct": 0.09473684210526316
+  },
+  {
+   "before_open": true,
+   "date": "2023-01-13",
+   "estimate": 3.1,
+   "reported": 3.57,
+   "surprise": 0.46999999999999975,
+   "surprise_pct": 0.15161290322580637
+  },
+  {
+   "before_open": true,
+   "date": "2023-04-14",
+   "estimate": 3.41,
+   "reported": 4.1,
+   "surprise": 0.6899999999999995,
+   "surprise_pct": 0.20234604105571832
+  },
+  {
+   "before_open": true,
+   "date": "2023-07-14",
+   "estimate": 4.0,
+   "reported": 4.75,
+   "surprise": 0.75,
+   "surprise_pct": 0.1875
+  },
+  {
+   "before_open": true,
+   "date": "2023-10-13",
+   "estimate": 3.96,
+   "reported": 4.33,
+   "surprise": 0.3700000000000001,
+   "surprise_pct": 0.09343434343434347
+  },
+  {
+   "before_open": true,
+   "date": "2024-01-12",
+   "estimate": 3.6,
+   "reported": 3.04,
+   "surprise": -0.56,
+   "surprise_pct": -0.15555555555555556
+  },
+  {
+   "before_open": true,
+   "date": "2024-04-12",
+   "estimate": 4.13,
+   "reported": 4.44,
+   "surprise": 0.3100000000000005,
+   "surprise_pct": 0.07506053268765145
+  },
+  {
+   "before_open": true,
+   "date": "2024-07-12",
+   "estimate": 5.09,
+   "reported": 6.12,
+   "surprise": 1.0300000000000002,
+   "surprise_pct": 0.20235756385068768
+  },
+  {
+   "before_open": true,
+   "date": "2024-10-11",
+   "estimate": 3.99,
+   "reported": 4.37,
+   "surprise": 0.3799999999999999,
+   "surprise_pct": 0.0952380952380952
+  },
+  {
+   "before_open": true,
+   "date": "2025-01-15",
+   "estimate": 4.04,
+   "reported": 4.81,
+   "surprise": 0.7699999999999996,
+   "surprise_pct": 0.19059405940594049
+  },
+  {
+   "before_open": true,
+   "date": "2025-04-11",
+   "estimate": 4.64,
+   "reported": 5.07,
+   "surprise": 0.4300000000000006,
+   "surprise_pct": 0.09267241379310358
+  },
+  {
+   "before_open": true,
+   "date": "2025-07-15",
+   "estimate": 4.48,
+   "reported": 4.96,
+   "surprise": 0.47999999999999954,
+   "surprise_pct": 0.10714285714285703
+  },
+  {
+   "before_open": true,
+   "date": "2025-10-14",
+   "estimate": 4.87,
+   "reported": 5.07,
+   "surprise": 0.20000000000000018,
+   "surprise_pct": 0.04106776180698155
+  },
+  {
+   "before_open": true,
+   "date": "2026-01-13",
+   "estimate": 4.82,
+   "reported": 4.63,
+   "surprise": -0.1900000000000004,
+   "surprise_pct": -0.03941908713692954
+  },
+  {
+   "before_open": true,
+   "date": "2026-04-14",
+   "estimate": 5.51,
+   "reported": 5.94,
+   "surprise": 0.4300000000000006,
+   "surprise_pct": 0.07803992740471881
+  },
+  {
+   "before_open": true,
+   "date": "2026-07-14",
+   "estimate": 5.59,
+   "reported": 6.14,
+   "surprise": 0.5499999999999998,
+   "surprise_pct": 0.09838998211091231
+  }
+ ],
+ "META": [
+  {
+   "before_open": false,
+   "date": "2014-01-29",
+   "estimate": 0.2,
+   "reported": 0.2,
+   "surprise": 0.0,
+   "surprise_pct": 0.0
+  },
+  {
+   "before_open": false,
+   "date": "2014-04-23",
+   "estimate": 0.24,
+   "reported": 0.34,
+   "surprise": 0.10000000000000003,
+   "surprise_pct": 0.4166666666666668
+  },
+  {
+   "before_open": false,
+   "date": "2014-07-23",
+   "estimate": 0.24,
+   "reported": 0.3,
+   "surprise": 0.06,
+   "surprise_pct": 0.25
+  },
+  {
+   "before_open": false,
+   "date": "2014-10-28",
+   "estimate": 0.4,
+   "reported": 0.42,
+   "surprise": 0.019999999999999962,
+   "surprise_pct": 0.049999999999999906
+  },
+  {
+   "before_open": false,
+   "date": "2015-01-28",
+   "estimate": 0.49,
+   "reported": 0.54,
+   "surprise": 0.050000000000000044,
+   "surprise_pct": 0.10204081632653071
+  },
+  {
+   "before_open": false,
+   "date": "2015-04-22",
+   "estimate": 0.16,
+   "reported": 0.18,
+   "surprise": 0.01999999999999999,
+   "surprise_pct": 0.12499999999999993
+  },
+  {
+   "before_open": false,
+   "date": "2015-07-29",
+   "estimate": 0.47,
+   "reported": 0.5,
+   "surprise": 0.030000000000000027,
+   "surprise_pct": 0.06382978723404262
+  },
+  {
+   "before_open": false,
+   "date": "2015-11-04",
+   "estimate": 0.27,
+   "reported": 0.31,
+   "surprise": 0.03999999999999998,
+   "surprise_pct": 0.14814814814814806
+  },
+  {
+   "before_open": false,
+   "date": "2016-01-27",
+   "estimate": 0.42,
+   "reported": 0.54,
+   "surprise": 0.12000000000000005,
+   "surprise_pct": 0.28571428571428586
+  },
+  {
+   "before_open": false,
+   "date": "2016-04-27",
+   "estimate": 0.4,
+   "reported": 0.52,
+   "surprise": 0.12,
+   "surprise_pct": 0.3
+  },
+  {
+   "before_open": false,
+   "date": "2016-07-27",
+   "estimate": 0.82,
+   "reported": 0.97,
+   "surprise": 0.15000000000000002,
+   "surprise_pct": 0.18292682926829273
+  },
+  {
+   "before_open": false,
+   "date": "2016-11-02",
+   "estimate": 0.71,
+   "reported": 0.82,
+   "surprise": 0.10999999999999999,
+   "surprise_pct": 0.15492957746478872
+  },
+  {
+   "before_open": false,
+   "date": "2017-02-01",
+   "estimate": 1.31,
+   "reported": 1.41,
+   "surprise": 0.09999999999999987,
+   "surprise_pct": 0.07633587786259531
+  },
+  {
+   "before_open": false,
+   "date": "2017-05-03",
+   "estimate": 1.12,
+   "reported": 1.36,
+   "surprise": 0.24,
+   "surprise_pct": 0.21428571428571425
+  },
+  {
+   "before_open": false,
+   "date": "2017-07-26",
+   "estimate": 1.12,
+   "reported": 1.32,
+   "surprise": 0.19999999999999996,
+   "surprise_pct": 0.17857142857142852
+  },
+  {
+   "before_open": false,
+   "date": "2017-11-01",
+   "estimate": 1.28,
+   "reported": 1.59,
+   "surprise": 0.31000000000000005,
+   "surprise_pct": 0.24218750000000003
+  },
+  {
+   "before_open": false,
+   "date": "2018-01-31",
+   "estimate": 1.97,
+   "reported": 2.21,
+   "surprise": 0.24,
+   "surprise_pct": 0.12182741116751268
+  },
+  {
+   "before_open": false,
+   "date": "2018-04-25",
+   "estimate": 1.35,
+   "reported": 1.69,
+   "surprise": 0.33999999999999986,
+   "surprise_pct": 0.2518518518518517
+  },
+  {
+   "before_open": false,
+   "date": "2018-07-25",
+   "estimate": 1.7,
+   "reported": 1.74,
+   "surprise": 0.040000000000000036,
+   "surprise_pct": 0.023529411764705903
+  },
+  {
+   "before_open": false,
+   "date": "2018-10-30",
+   "estimate": 1.45,
+   "reported": 1.76,
+   "surprise": 0.31000000000000005,
+   "surprise_pct": 0.2137931034482759
+  },
+  {
+   "before_open": false,
+   "date": "2019-01-30",
+   "estimate": 2.18,
+   "reported": 2.38,
+   "surprise": 0.19999999999999973,
+   "surprise_pct": 0.09174311926605491
+  },
+  {
+   "before_open": false,
+   "date": "2019-04-24",
+   "estimate": 1.61,
+   "reported": 0.85,
+   "surprise": -0.7600000000000001,
+   "surprise_pct": -0.47204968944099385
+  },
+  {
+   "before_open": false,
+   "date": "2019-07-24",
+   "estimate": 1.88,
+   "reported": 1.99,
+   "surprise": 0.1100000000000001,
+   "surprise_pct": 0.0585106382978724
+  },
+  {
+   "before_open": false,
+   "date": "2019-10-30",
+   "estimate": 1.91,
+   "reported": 2.12,
+   "surprise": 0.2100000000000002,
+   "surprise_pct": 0.1099476439790577
+  },
+  {
+   "before_open": false,
+   "date": "2020-01-29",
+   "estimate": 2.53,
+   "reported": 2.56,
+   "surprise": 0.03000000000000025,
+   "surprise_pct": 0.011857707509881523
+  },
+  {
+   "before_open": false,
+   "date": "2020-04-29",
+   "estimate": 1.7,
+   "reported": 1.71,
+   "surprise": 0.010000000000000009,
+   "surprise_pct": 0.005882352941176476
+  },
+  {
+   "before_open": false,
+   "date": "2020-07-30",
+   "estimate": 1.4,
+   "reported": 1.8,
+   "surprise": 0.40000000000000013,
+   "surprise_pct": 0.2857142857142858
+  },
+  {
+   "before_open": false,
+   "date": "2020-10-29",
+   "estimate": 1.91,
+   "reported": 2.4,
+   "surprise": 0.49,
+   "surprise_pct": 0.25654450261780104
+  },
+  {
+   "before_open": false,
+   "date": "2021-01-27",
+   "estimate": 3.24,
+   "reported": 3.88,
+   "surprise": 0.6399999999999997,
+   "surprise_pct": 0.19753086419753074
+  },
+  {
+   "before_open": false,
+   "date": "2021-04-28",
+   "estimate": 2.35,
+   "reported": 3.3,
+   "surprise": 0.9499999999999997,
+   "surprise_pct": 0.40425531914893603
+  },
+  {
+   "before_open": false,
+   "date": "2021-07-28",
+   "estimate": 3.06,
+   "reported": 3.61,
+   "surprise": 0.5499999999999998,
+   "surprise_pct": 0.1797385620915032
+  },
+  {
+   "before_open": false,
+   "date": "2021-10-25",
+   "estimate": 3.17,
+   "reported": 3.22,
+   "surprise": 0.050000000000000266,
+   "surprise_pct": 0.015772870662460654
+  },
+  {
+   "before_open": false,
+   "date": "2022-02-02",
+   "estimate": 3.83,
+   "reported": 3.67,
+   "surprise": -0.16000000000000014,
+   "surprise_pct": -0.04177545691906009
+  },
+  {
+   "before_open": false,
+   "date": "2022-04-27",
+   "estimate": 2.53,
+   "reported": 2.72,
+   "surprise": 0.1900000000000004,
+   "surprise_pct": 0.07509881422924918
+  },
+  {
+   "before_open": false,
+   "date": "2022-07-27",
+   "estimate": 2.55,
+   "reported": 2.46,
+   "surprise": -0.08999999999999986,
+   "surprise_pct": -0.03529411764705877
+  },
+  {
+   "before_open": false,
+   "date": "2022-10-26",
+   "estimate": 1.85,
+   "reported": 1.64,
+   "surprise": -0.2100000000000002,
+   "surprise_pct": -0.1135135135135136
+  },
+  {
+   "before_open": false,
+   "date": "2023-02-01",
+   "estimate": 2.24,
+   "reported": 1.76,
+   "surprise": -0.4800000000000002,
+   "surprise_pct": -0.21428571428571436
+  },
+  {
+   "before_open": false,
+   "date": "2023-04-26",
+   "estimate": 1.98,
+   "reported": 2.2,
+   "surprise": 0.2200000000000002,
+   "surprise_pct": 0.11111111111111122
+  },
+  {
+   "before_open": false,
+   "date": "2023-07-26",
+   "estimate": 2.91,
+   "reported": 2.98,
+   "surprise": 0.06999999999999984,
+   "surprise_pct": 0.024054982817869358
+  },
+  {
+   "before_open": false,
+   "date": "2023-10-25",
+   "estimate": 3.6,
+   "reported": 4.39,
+   "surprise": 0.7899999999999996,
+   "surprise_pct": 0.21944444444444433
+  },
+  {
+   "before_open": false,
+   "date": "2024-02-01",
+   "estimate": 4.96,
+   "reported": 5.33,
+   "surprise": 0.3700000000000001,
+   "surprise_pct": 0.0745967741935484
+  },
+  {
+   "before_open": false,
+   "date": "2024-04-24",
+   "estimate": 4.32,
+   "reported": 4.71,
+   "surprise": 0.3899999999999997,
+   "surprise_pct": 0.09027777777777769
+  },
+  {
+   "before_open": false,
+   "date": "2024-07-31",
+   "estimate": 4.76,
+   "reported": 5.16,
+   "surprise": 0.40000000000000036,
+   "surprise_pct": 0.08403361344537823
+  },
+  {
+   "before_open": false,
+   "date": "2024-10-30",
+   "estimate": 5.3,
+   "reported": 6.03,
+   "surprise": 0.7300000000000004,
+   "surprise_pct": 0.13773584905660385
+  },
+  {
+   "before_open": false,
+   "date": "2025-01-29",
+   "estimate": 6.68,
+   "reported": 8.02,
+   "surprise": 1.3399999999999999,
+   "surprise_pct": 0.20059880239520958
+  },
+  {
+   "before_open": false,
+   "date": "2025-04-30",
+   "estimate": 5.21,
+   "reported": 6.43,
+   "surprise": 1.2199999999999998,
+   "surprise_pct": 0.23416506717850283
+  },
+  {
+   "before_open": false,
+   "date": "2025-07-30",
+   "estimate": 5.86,
+   "reported": 7.14,
+   "surprise": 1.2799999999999994,
+   "surprise_pct": 0.21843003412969272
+  },
+  {
+   "before_open": false,
+   "date": "2025-10-29",
+   "estimate": 6.71,
+   "reported": 7.25,
+   "surprise": 0.54,
+   "surprise_pct": 0.0804769001490313
+  },
+  {
+   "before_open": false,
+   "date": "2026-01-28",
+   "estimate": 8.22,
+   "reported": 8.88,
+   "surprise": 0.6600000000000001,
+   "surprise_pct": 0.08029197080291972
+  },
+  {
+   "before_open": false,
+   "date": "2026-04-29",
+   "estimate": 6.82,
+   "reported": 7.31,
+   "surprise": 0.4899999999999993,
+   "surprise_pct": 0.0718475073313782
+  },
+  {
+   "before_open": false,
+   "date": "2026-07-29",
+   "estimate": 7.1,
+   "reported": 6.18,
+   "surprise": -0.9199999999999999,
+   "surprise_pct": -0.1295774647887324
+  }
+ ]
+}
