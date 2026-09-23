@@ -1,0 +1,115 @@
+//@version=6
+// MFI / OBV gap strategy.
+//
+// THE ONE THING THAT MATTERS IN THIS SCRIPT
+// MFI is bounded 0-100. OBV is a running sum of signed volume and is
+// unbounded -- it reads in the hundreds of thousands. Plotting them together
+// and eyeballing a "gap" measures nothing, because the platform rescales each
+// one to whatever is currently on screen: scroll the chart and the gap
+// changes. Worse, a min-max rescaled series cannot stay pinned at its own
+// extreme, so "OBV always closes the gap" is true by construction before it
+// is true of any market.
+//
+// So OBV is put on the same 0-100 scale here explicitly, by rolling min-max
+// over a declared lookback that only ever looks backwards. That makes the gap
+// a fixed, reproducible quantity instead of an artefact of the viewport.
+//
+// WHAT THE BACKTEST SAID (XAUUSD 15m, 172,236 bars, Jan 2021 - Sep 2026)
+// The gap does close -- in all 29 instruments tested -- but that is the
+// rescaling, not the market. Against forward PRICE return the edge is about
+// zero: information coefficient +0.016, gross -0.5 to +0.5 bp per trade,
+// against a round-trip cost near 5 bp. Waiting 5 bars for confirmation made
+// it slightly worse, not better (-5.19 bp -> -5.83 bp net), because the delay
+// costs more than it filters. Every variant lost in all three two-year blocks.
+//
+// Defaults below charge a realistic cost so the Strategy Tester does not
+// flatter it. Set commission to 0 only if you want to see the gross series.
+
+strategy("MFI/OBV Gap", overlay=false, initial_capital=10000,
+         default_qty_type=strategy.percent_of_equity, default_qty_value=100,
+         commission_type=strategy.commission.percent, commission_value=0.019,
+         pyramiding=0, calc_on_every_tick=false, process_orders_on_close=true)
+
+// ---- inputs ---------------------------------------------------------------
+mfiLen    = input.int(21,  "MFI length",              minval=2,  group="Signal")
+normLen   = input.int(100, "OBV normalise lookback",  minval=5,  group="Signal",
+     tooltip="Bars used for the rolling min-max that puts OBV on 0-100. This " +
+             "is the chart autoscale, made explicit and backward-looking. " +
+             "Shorter = more reactive and noisier.")
+gapThr    = input.float(30, "Gap to open a trade",    minval=1, step=1, group="Signal",
+     tooltip="Absolute difference between MFI and normalised OBV, in points of 0-100.")
+confirmN  = input.int(5,   "Confirmation bars",       minval=1,  group="Signal",
+     tooltip="The gap must hold at or beyond the threshold for this many " +
+             "consecutive bars before a position is taken.")
+
+exitThr   = input.float(10, "Gap considered closed",  minval=0, step=1, group="Exit")
+maxBars   = input.int(96,  "Max bars in trade",       minval=1,  group="Exit")
+useStop   = input.bool(false, "Use ATR stop",                    group="Exit")
+atrLen    = input.int(14,  "ATR length",              minval=1,  group="Exit")
+atrMult   = input.float(2.0, "ATR multiple",          minval=0.1, step=0.1, group="Exit")
+
+longOn    = input.bool(true, "Take longs",  group="Direction")
+shortOn   = input.bool(true, "Take shorts", group="Direction")
+
+// ---- indicators -----------------------------------------------------------
+mfi = ta.mfi(hlc3, mfiLen)
+
+// Rolling min-max of OBV onto 0-100. A flat window has no range to scale
+// into; na rather than a forced midpoint, so no trade is taken on it.
+obvRaw = ta.obv
+obvLo  = ta.lowest(obvRaw, normLen)
+obvHi  = ta.highest(obvRaw, normLen)
+obvRng = obvHi - obvLo
+obvN   = obvRng > 0 ? 100.0 * (obvRaw - obvLo) / obvRng : na
+
+// Positive spread = OBV sits BELOW MFI, so OBV has to rise to close the gap.
+// OBV rises on up closes, which is the long case.
+spread = mfi - obvN
+ready  = not na(spread)
+
+// ---- confirmation ---------------------------------------------------------
+var int upRun = 0
+var int dnRun = 0
+upRun := ready and spread >=  gapThr ? upRun + 1 : 0
+dnRun := ready and spread <= -gapThr ? dnRun + 1 : 0
+
+// Fire on the bar the run first reaches the required length, not on every
+// bar after it, so one gap produces one entry.
+longSig  = longOn  and upRun == confirmN
+shortSig = shortOn and dnRun == confirmN
+
+// ---- orders ---------------------------------------------------------------
+if longSig and strategy.position_size == 0
+    strategy.entry("L", strategy.long)
+if shortSig and strategy.position_size == 0
+    strategy.entry("S", strategy.short)
+
+barsIn   = strategy.position_size != 0 ? bar_index - strategy.opentrades.entry_bar_index(0) : 0
+gapShut  = ready and math.abs(spread) <= exitThr
+timedOut = barsIn >= maxBars
+
+if strategy.position_size != 0 and (gapShut or timedOut)
+    strategy.close_all(comment = gapShut ? "gap closed" : "max bars")
+
+if useStop and strategy.position_size != 0
+    a = ta.atr(atrLen)
+    stopPx = strategy.position_size > 0 ? strategy.position_avg_price - atrMult * a
+                                        : strategy.position_avg_price + atrMult * a
+    strategy.exit("stop", stop = stopPx)
+
+// ---- plots ----------------------------------------------------------------
+pM = plot(mfi,  "MFI",            color=color.new(color.aqua, 0),  linewidth=2)
+pO = plot(obvN, "OBV normalised", color=color.new(color.orange, 0), linewidth=2)
+fill(pM, pO, color = math.abs(spread) >= gapThr
+     ? (spread > 0 ? color.new(color.lime, 80) : color.new(color.red, 80))
+     : color.new(color.gray, 92))
+
+hline(80, "80", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
+hline(50, "50", color=color.new(color.gray, 75))
+hline(20, "20", color=color.new(color.gray, 60), linestyle=hline.style_dotted)
+
+plotshape(longSig,  "Long",  shape.triangleup,   location.bottom, color.lime, size=size.tiny)
+plotshape(shortSig, "Short", shape.triangledown, location.top,    color.red,  size=size.tiny)
+
+alertcondition(longSig,  "MFI/OBV long",  "OBV below MFI by the threshold for the confirmation window")
+alertcondition(shortSig, "MFI/OBV short", "OBV above MFI by the threshold for the confirmation window")
