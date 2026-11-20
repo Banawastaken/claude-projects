@@ -1,0 +1,311 @@
+<title>SSRN Anomaly Backtests</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single research-note column (~1080px) — findings up top, the
+   publication-decay chart as the thesis, then the full ledger with a drill-down. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --ink:#0f1720; --ink-2:#4a5563; --ink-3:#7b8593;
+  --rule:#e1e5ea; --rule-2:#eef1f4; --accent:#2a78d6; --post:#eb6834;
+  --pos:#2a78d6; --neg:#e34948; --mkt:#9aa3ae; --hl:#eaf2fc;
+  --display:"Archivo",system-ui,sans-serif; --body:"Inter",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111418; --surface:#181c21; --ink:#eef0f2; --ink-2:#b5bdc7; --ink-3:#848d99;
+  --rule:#2a3038; --rule-2:#20252b; --accent:#3987e5; --post:#d95926;
+  --pos:#3987e5; --neg:#e66767; --mkt:#6b7480; --hl:#1c2a3b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111418; --surface:#181c21; --ink:#eef0f2; --ink-2:#b5bdc7; --ink-3:#848d99;
+  --rule:#2a3038; --rule-2:#20252b; --accent:#3987e5; --post:#d95926;
+  --pos:#3987e5; --neg:#e66767; --mkt:#6b7480; --hl:#1c2a3b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+header{padding-block:44px 28px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,5vw,46px);line-height:1.05;letter-spacing:-.02em;margin:10px 0 14px;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:23px;letter-spacing:-.01em;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--display);font-weight:700;font-size:17px;margin:0 0 4px}
+.lede{max-width:68ch;color:var(--ink-2);font-size:16.5px;margin:0}
+.lede b{color:var(--ink);font-weight:600}
+section{padding-block:36px 8px}
+.sub{color:var(--ink-2);max-width:70ch;margin:0 0 18px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-top:28px}
+.tile{background:var(--surface);padding:16px 18px;min-width:0}
+.tile .n{font-family:var(--display);font-weight:700;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile .n small{font-size:17px;color:var(--ink-3);font-weight:500}
+.tile .l{color:var(--ink-2);font-size:13px;margin-top:4px}
+@media (max-width:720px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:18px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.chartbox{overflow-x:auto}
+svg text{font-family:var(--body);fill:var(--ink-2)}
+svg .axis{font-family:var(--mono);font-size:11px;fill:var(--ink-3)}
+.tip{position:fixed;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--rule);
+  border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 6px 24px rgba(0,0,0,.14);z-index:20;max-width:280px;line-height:1.45}
+.tip b{font-weight:600}.tip .m{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{font:500 13px var(--body);border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);padding:5px 11px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible,th button:focus-visible,tr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tablebox{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:980px}
+th,td{padding:8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--rule-2)}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{position:sticky;top:0;background:var(--surface);z-index:1}
+th button{all:unset;cursor:pointer;font:600 11.5px var(--body);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+th button[data-dir]::after{content:attr(data-dir);margin-left:3px;color:var(--ink)}
+td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.name{font-family:var(--body);font-weight:500;color:var(--ink);white-space:normal;min-width:200px}
+td.name span{display:block;font-weight:400;font-size:12px;color:var(--ink-3)}
+td.cat{font-family:var(--body);color:var(--ink-2);font-size:12.5px}
+tbody tr{cursor:pointer}tbody tr:hover{background:var(--rule-2)}tbody tr.sel{background:var(--hl)}
+.neg{color:var(--neg)}
+.pill{display:inline-block;font:600 11px var(--body);padding:2px 7px;border-radius:999px;border:1px solid var(--rule);color:var(--ink-2)}
+.pill.ok{border-color:var(--accent);color:var(--accent)}
+.detail{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;margin-top:18px}
+@media (max-width:860px){.detail{grid-template-columns:minmax(0,1fr)}}
+.meta dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;margin:12px 0 0;font-size:13.5px}
+.meta dt{color:var(--ink-3)}.meta dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.meta p{margin:8px 0;color:var(--ink-2);font-size:14px}
+a{color:var(--accent)}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:760px){.notes{grid-template-columns:minmax(0,1fr)}}
+.notes ul{margin:8px 0 0;padding-left:18px;color:var(--ink-2)}.notes li{margin:5px 0}
+.small{font-size:12.5px;color:var(--ink-3)}
+@media (prefers-reduced-motion:no-preference){tbody tr{transition:background .12s}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Backtest ledger · data through Sep 2026 (ETFs to Nov 2026)</div>
+  <h1>SSRN Anomaly Backtests</h1>
+  <p class="lede">37 of the most-cited trading strategies circulated on SSRN, rebuilt from public data and run from their first available month to today. The pattern across all of them: <b>strategies earn much less after their paper is published</b>, and most of the classic stock-selection anomalies have lost money over the past ten years.</p>
+  <div class="tiles" id="tiles"></div>
+</header>
+
+<section>
+  <h2>Performance before and after publication</h2>
+  <p class="sub">Annualized Sharpe ratio in the years up to the paper's publication (blue) and in the years since (orange). Strategies with fewer than five years of post-publication data are left out. Hover a row for figures.</p>
+  <div class="panel">
+    <div class="legend"><span><i style="background:var(--accent)"></i>Up to publication year</span><span><i style="background:var(--post)"></i>After publication</span></div>
+    <div class="chartbox" id="decay"></div>
+  </div>
+</section>
+
+<section>
+  <h2>All strategies</h2>
+  <p class="sub">Click a column to sort and a row to see its equity curve and yearly returns. Sharpe and alpha are on monthly excess returns over T-bills. A t-stat above 3 is the bar Harvey, Liu &amp; Zhu propose after accounting for how many strategies have been tried.</p>
+  <div class="chips" id="chips"></div>
+  <div class="tablebox"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+
+  <div class="detail" id="detail">
+    <div class="panel" style="min-width:0">
+      <h3 id="d-title"></h3>
+      <div class="legend" id="d-legend"></div>
+      <div class="chartbox" id="curve"></div>
+      <h3 style="margin-top:18px">Calendar-year excess return</h3>
+      <div class="chartbox" id="years"></div>
+    </div>
+    <div class="panel meta" id="meta"></div>
+  </div>
+</section>
+
+<section>
+  <h2>How this was built, and what it leaves out</h2>
+  <div class="notes">
+    <div class="panel">
+      <h3>Method</h3>
+      <ul>
+        <li><b>Stock-selection anomalies</b> use the long-short portfolios in Kenneth French's library (CRSP data, from 1926 where available): top quintile minus bottom quintile, value-weighted, or the published factor itself. BAB, QMJ, time-series momentum and value &amp; momentum everywhere come from AQR's data library.</li>
+        <li><b>Rotation, timing and calendar rules</b> are built here from those returns or from adjusted Yahoo ETF prices. Signals use data available at the close of month (or day) <i>t</i> and trade in <i>t</i>+1.</li>
+        <li><b>Costs.</b> Rules built here pay 5 bp per unit of ETF turnover and 1 bp per side for daily in/out trades. Library portfolios are <b>gross of costs</b>, as published. High-turnover anomalies such as short-term reversal and momentum would lose a large share of their premium to costs.</li>
+        <li>Equity curves and CAGR assume idle and collateral cash earns the T-bill rate. The publication split uses the journal year (or SSRN year for working papers).</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Not covered</h3>
+      <ul>
+        <li><b>Literally every SSRN strategy.</b> SSRN holds over a million papers and several hundred documented anomalies. This ledger covers the canonical ones that free public data can reproduce faithfully.</li>
+        <li><b>Firm-level signals</b> (PEAD, analyst revisions, short interest, insider trades, text/NLP) need CRSP/Compustat, I/B/E/S or similar licensed stock-level data.</li>
+        <li><b>Options, futures and intraday strategies</b> (variance risk premium, FOMC pre-announcement drift, intraday momentum) need options chains, futures rolls, or event calendars not available here.</li>
+        <li><b>Survivorship and look-ahead.</b> French and AQR portfolios are survivorship-free. The ETF tests start when each ETF launched, which shortens them. One look-ahead bug (seasonality) was found and fixed during the build.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="small" style="margin-top:14px">Sources: Kenneth R. French Data Library (Tuck/Dartmouth), AQR Data Library, Yahoo Finance. Paper links open an SSRN search for the title. Code: <span style="font-family:var(--mono)">ssrn/</span> in the claude-projects repository.</p>
+</section>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const NS="http://www.w3.org/2000/svg";
+const f2=v=>v==null?"–":v.toFixed(2), pct=(v,d=1)=>v==null?"–":(v*100).toFixed(d)+"%";
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const tip=$("#tip");
+function showTip(e,html){tip.innerHTML=html;tip.hidden=false;const w=tip.offsetWidth,h=tip.offsetHeight;
+  let x=e.clientX+14,y=e.clientY+14;if(x+w>innerWidth-8)x=e.clientX-w-14;if(y+h>innerHeight-8)y=e.clientY-h-14;tip.style.left=x+"px";tip.style.top=y+"px"}
+const hideTip=()=>tip.hidden=true;
+let D,rows,byId={},sel=null,cat="All",sortKey="sharpe",sortDir=-1;
+
+fetch("results.json").then(r=>r.json()).then(d=>{D=d;rows=d.rows;rows.forEach(r=>byId[r.id]=r);init()})
+ .catch(()=>{$("#tiles").innerHTML='<div class="tile">Results file failed to load. Reload the page to try again.</div>'});
+
+function init(){
+  const s=rows.filter(r=>!r.benchmark);
+  const both=s.filter(r=>r.sharpe_pre!=null&&r.sharpe_post!=null&&r.n_post>=60);
+  const med=a=>{a=[...a].sort((x,y)=>x-y);const m=a.length>>1;return a.length%2?a[m]:(a[m-1]+a[m])/2};
+  const decayed=both.filter(r=>r.sharpe_post<r.sharpe_pre).length;
+  const negRecent=s.filter(r=>r.sharpe_recent!=null&&r.sharpe_recent<0).length;
+  const t3=s.filter(r=>r.t>3).length;
+  $("#tiles").innerHTML=[
+    [`${s.length}`,"strategies backtested, plus 2 benchmarks"],
+    [`${f2(med(both.map(r=>r.sharpe_pre)))} <small>→ ${f2(med(both.map(r=>r.sharpe_post)))}</small>`,"median Sharpe, pre → post publication"],
+    [`${decayed}<small> / ${both.length}</small>`,"did worse after their paper came out"],
+    [`${negRecent}<small> / ${s.length}</small>`,"have a negative Sharpe over the last 10 years"]
+  ].map(([n,l])=>`<div class="tile"><div class="n">${n}</div><div class="l">${l}</div></div>`).join("")+
+  `<div class="tile" style="grid-column:1/-1;font-size:13.5px;color:var(--ink-2)">${t3} of ${s.length} clear t &gt; 3 over their full history. The US market itself had a Sharpe of ${f2(byId.mkt.sharpe_recent)} over the last ten years. Only ${s.filter(r=>r.sharpe_recent>byId.mkt.sharpe_recent).length} strategy beat that, which shows how hard the recent period has been for anything other than holding the index.</div>`;
+  const cats=["All",...new Set(rows.map(r=>r.category))];
+  $("#chips").innerHTML=cats.map(c=>`<button class="chip" id="chip-${c.replace(/\W/g,"")}" aria-pressed="${c===cat}">${c}</button>`).join("");
+  $("#chips").onclick=e=>{const b=e.target.closest(".chip");if(!b)return;cat=b.textContent;
+    [...$("#chips").children].forEach(x=>x.setAttribute("aria-pressed",x===b));renderTable()};
+  const h=location.hash.slice(1);sel=byId[h]?h:"umd";
+  renderDecay();renderTable();renderDetail();
+  addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(byId[h]&&h!==sel){sel=h;renderTable();renderDetail()}});
+  let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{renderDecay();renderDetail()},150)});
+}
+
+/* ---------- dumbbell: pre vs post ---------- */
+function renderDecay(){
+  const box=$("#decay");box.innerHTML="";
+  const data=rows.filter(r=>!r.benchmark&&r.sharpe_pre!=null&&r.sharpe_post!=null&&r.n_post>=60)
+    .sort((a,b)=>b.sharpe_pre-a.sharpe_pre);
+  const W=Math.max(box.clientWidth,560),L=Math.min(290,W*0.44),R=16,T=26,rh=22,H=T+data.length*rh+8;
+  const lo=-0.4,hi=1.4,x=v=>L+(Math.max(lo,Math.min(hi,v))-lo)/(hi-lo)*(W-L-R);
+  const s=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H},box);
+  for(let v=-0.4;v<=1.401;v+=0.2){const X=x(v);
+    el("line",{x1:X,x2:X,y1:T-6,y2:H-4,stroke:Math.abs(v)<1e-9?"var(--ink-3)":"var(--rule)","stroke-width":Math.abs(v)<1e-9?1:1},s);
+    el("text",{x:X,y:T-12,"text-anchor":"middle",class:"axis"},s).textContent=v.toFixed(1)}
+  data.forEach((r,i)=>{const y=T+i*rh+rh/2;
+    const g=el("g",{},s);
+    el("rect",{x:0,y:y-rh/2,width:W,height:rh,fill:"transparent"},g);
+    const t=el("text",{x:L-10,y:y+4,"text-anchor":"end","font-size":12.5},g);t.textContent=r.name;
+    el("line",{x1:x(r.sharpe_pre),x2:x(r.sharpe_post),y1:y,y2:y,stroke:"var(--ink-3)","stroke-width":2,"stroke-opacity":.45},g);
+    el("circle",{cx:x(r.sharpe_pre),cy:y,r:5,fill:"var(--accent)",stroke:"var(--surface)","stroke-width":2},g);
+    el("circle",{cx:x(r.sharpe_post),cy:y,r:5,fill:"var(--post)",stroke:"var(--surface)","stroke-width":2},g);
+    g.style.cursor="pointer";
+    g.onmousemove=e=>showTip(e,`<b>${r.name}</b><br>${r.authors} (${r.year})<br><span class="m">Pre ${f2(r.sharpe_pre)} → post ${f2(r.sharpe_post)}</span><br><span class="m">${r.start.slice(0,4)}–${r.year} vs ${r.year+1}–${r.end.slice(0,4)}</span>`);
+    g.onmouseleave=hideTip; g.onclick=()=>pick(r.id,true);
+  });
+}
+
+/* ---------- table ---------- */
+const COLS=[["name","Strategy"],["category","Type"],["start","From"],["sharpe","Sharpe"],["t","t-stat"],["cagr","CAGR"],["vol","Vol"],["maxdd","Max DD"],["alpha","CAPM α"],["beta","β"],["pct_up_years","Up yrs"],["sharpe_pre","SR pre"],["sharpe_post","SR post"],["sharpe_recent","SR 10y"]];
+function renderTable(){
+  $("#tbl thead").innerHTML="<tr>"+COLS.map(([k,l])=>`<th><button id="sort-${k}" ${k===sortKey?`data-dir="${sortDir<0?"↓":"↑"}"`:""} data-k="${k}">${l}</button></th>`).join("")+"</tr>";
+  $("#tbl thead").onclick=e=>{const b=e.target.closest("button");if(!b)return;const k=b.dataset.k;
+    if(k===sortKey)sortDir*=-1;else{sortKey=k;sortDir=(k==="name"||k==="category"||k==="start")?1:-1}renderTable()};
+  const list=rows.filter(r=>cat==="All"||r.category===cat).sort((a,b)=>{
+    const A=a[sortKey],B=b[sortKey];if(A==null)return 1;if(B==null)return-1;
+    return (typeof A==="string"?A.localeCompare(B):A-B)*sortDir});
+  const n=(v,f)=>`<td class="${v!=null&&v<0?"neg":""}">${f(v)}</td>`;
+  $("#tbl tbody").innerHTML=list.map(r=>`<tr data-id="${r.id}" tabindex="0" class="${r.id===sel?"sel":""}">
+    <td class="name">${r.name}<span>${r.authors} (${r.year})</span></td><td class="cat">${r.category}</td><td>${r.start.slice(0,4)}</td>
+    ${n(r.sharpe,f2)}<td>${r.t==null?"–":r.t.toFixed(1)} ${r.t>3?'<span class="pill ok">t&gt;3</span>':""}</td>
+    ${n(r.cagr,pct)}<td>${pct(r.vol)}</td>${n(r.maxdd,v=>pct(v,0))}${n(r.alpha,pct)}<td>${f2(r.beta)}</td>
+    <td>${r.pct_up_years==null?"–":Math.round(r.pct_up_years*100)+"%"}</td>
+    ${n(r.sharpe_pre,f2)}${n(r.n_post>=24?r.sharpe_post:null,f2)}${n(r.sharpe_recent,f2)}</tr>`).join("");
+  $("#tbl tbody").onclick=e=>{const tr=e.target.closest("tr");if(tr)pick(tr.dataset.id,true)};
+  $("#tbl tbody").onkeydown=e=>{if(e.key==="Enter"){const tr=e.target.closest("tr");if(tr)pick(tr.dataset.id,true)}};
+}
+function pick(id,scroll){sel=id;try{history.replaceState(null,"","#"+id)}catch(e){}
+  document.querySelectorAll("#tbl tbody tr").forEach(t=>t.classList.toggle("sel",t.dataset.id===id));
+  renderDetail();if(scroll)$("#detail").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"nearest"})}
+
+/* ---------- detail ---------- */
+function renderDetail(){
+  const r=byId[sel];if(!r)return;
+  $("#d-title").textContent=r.name+" — growth of $1 (log scale)";
+  const showMkt=r.id!=="mkt";
+  $("#d-legend").innerHTML=`<span><i style="background:var(--accent)"></i>${r.name}</span>`+(showMkt?`<span><i style="background:var(--mkt)"></i>US equity market, same period</span>`:"");
+  const curve=r.curve, mk=byId.mkt.curve, mi=new Map(mk.map(p=>[p[0],p[1]]));
+  let base=null,mc=[];
+  if(showMkt){const startKey=curve[0][0];const prev=mk.findIndex(p=>p[0]===startKey);
+    const b0=prev>0?mk[prev-1][1]:0;mc=curve.map(p=>mi.has(p[0])?[p[0],mi.get(p[0])-b0]:null).filter(Boolean)}
+  lineChart($("#curve"),curve,mc,r);
+  barChart($("#years"),r.yearly);
+  const pubYear=r.year;
+  $("#meta").innerHTML=`<div class="eyebrow">${r.category}</div>
+    <h3 style="margin-top:6px">${r.paper}</h3>
+    <p>${r.authors}, ${r.year}. <a href="${r.link}" target="_blank" rel="noopener">Find on SSRN</a></p>
+    <p><b style="color:var(--ink)">Rule.</b> ${r.rule}</p>
+    <p><b style="color:var(--ink)">Costs.</b> ${r.costs}.<br><b style="color:var(--ink)">Data.</b> ${r.data}.</p>
+    <dl>
+      <dt>Sample</dt><dd>${r.start} – ${r.end}</dd>
+      <dt>Excess return / yr</dt><dd>${pct(r.ann_excess)}</dd>
+      <dt>Volatility</dt><dd>${pct(r.vol)}</dd>
+      <dt>Sharpe (t-stat)</dt><dd>${f2(r.sharpe)} (${r.t==null?"–":r.t.toFixed(1)})</dd>
+      <dt>CAPM alpha (t)</dt><dd>${pct(r.alpha)} (${r.alpha_t==null?"–":r.alpha_t.toFixed(1)})</dd>
+      <dt>Max drawdown</dt><dd>${pct(r.maxdd,0)}</dd>
+      <dt>Best / worst year</dt><dd>${pct(r.best_year,0)} / ${pct(r.worst_year,0)}</dd>
+      <dt>Sharpe to ${pubYear}</dt><dd>${f2(r.sharpe_pre)}</dd>
+      <dt>Sharpe after ${pubYear}</dt><dd>${r.n_post>=24?f2(r.sharpe_post):"–"}</dd>
+      <dt>Sharpe, last 10 yrs</dt><dd>${f2(r.sharpe_recent)}</dd>
+    </dl>`;
+}
+function lineChart(box,a,b,r){
+  box.innerHTML="";const W=Math.max(box.clientWidth,320),H=280,L=46,R=12,T=12,B=26;
+  const t0=a[0][0],keys=a.map(p=>p[0]),n=keys.length;
+  const vals=a.map(p=>p[1]).concat(b.map(p=>p[1]));
+  let lo=Math.floor(Math.min(0,...vals)),hi=Math.ceil(Math.max(...vals));if(hi-lo<1)hi=lo+1;
+  const x=i=>L+i/(n-1)*(W-L-R),y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  const s=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H},box);
+  const step=hi-lo>6?2:1;
+  for(let v=lo;v<=hi;v+=step){el("line",{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:"var(--rule)"},s);
+    const lbl=v>=0?"$"+Math.pow(10,v).toLocaleString("en-US"):"$"+Math.pow(10,v);
+    el("text",{x:L-6,y:y(v)+4,"text-anchor":"end",class:"axis"},s).textContent=lbl}
+  const y0=+t0.slice(0,4),y1=+keys[n-1].slice(0,4),span=y1-y0,ys=span>60?20:span>25?10:5;
+  for(let yr=Math.ceil(y0/ys)*ys;yr<=y1;yr+=ys){const i=keys.indexOf(yr+"-01");if(i<0)continue;
+    el("text",{x:x(i),y:H-8,"text-anchor":"middle",class:"axis"},s).textContent=yr}
+  // publication marker
+  const pi=keys.indexOf((r.year+1)+"-01");
+  if(pi>0){el("line",{x1:x(pi),x2:x(pi),y1:T,y2:H-B,stroke:"var(--ink-3)","stroke-dasharray":"3 3"},s);
+    el("text",{x:x(pi)+5,y:T+11,"font-size":11,fill:"var(--ink-3)"},s).textContent="published "+r.year}
+  const path=pts=>pts.map((p,i)=>(i?"L":"M")+x(keys.indexOf(p[0])).toFixed(1)+" "+y(p[1]).toFixed(1)).join("");
+  if(b.length)el("path",{d:path(b),fill:"none",stroke:"var(--mkt)","stroke-width":1.5},s);
+  el("path",{d:path(a),fill:"none",stroke:"var(--accent)","stroke-width":2},s);
+  const cross=el("line",{y1:T,y2:H-B,stroke:"var(--ink-3)",visibility:"hidden"},s);
+  const dot=el("circle",{r:4,fill:"var(--accent)",stroke:"var(--surface)","stroke-width":2,visibility:"hidden"},s);
+  const bm=new Map(b.map(p=>[p[0],p[1]]));
+  const hit=el("rect",{x:L,y:T,width:W-L-R,height:H-T-B,fill:"transparent"},s);
+  hit.onmousemove=e=>{const bb=s.getBoundingClientRect();const px=(e.clientX-bb.left)*W/bb.width;
+    const i=Math.max(0,Math.min(n-1,Math.round((px-L)/(W-L-R)*(n-1))));const k=keys[i];
+    cross.setAttribute("x1",x(i));cross.setAttribute("x2",x(i));cross.setAttribute("visibility","visible");
+    dot.setAttribute("cx",x(i));dot.setAttribute("cy",y(a[i][1]));dot.setAttribute("visibility","visible");
+    const fmt=v=>"$"+Math.pow(10,v).toFixed(Math.pow(10,v)<10?2:0);
+    showTip(e,`<b>${k}</b><br><span class="m">${r.name}: ${fmt(a[i][1])}</span>`+(bm.has(k)?`<br><span class="m">Market: ${fmt(bm.get(k))}</span>`:""))};
+  hit.onmouseleave=()=>{hideTip();cross.setAttribute("visibility","hidden");dot.setAttribute("visibility","hidden")};
+}
+function barChart(box,yearly){
+  box.innerHTML="";const ks=Object.keys(yearly).map(Number).sort((a,b)=>a-b);if(!ks.length)return;
+  const W=Math.max(box.clientWidth,320),H=170,L=46,R=12,T=10,B=24;
+  const v=ks.map(k=>yearly[k]);let m=Math.max(0.1,...v.map(Math.abs));m=Math.ceil(m*10)/10;
+  const bw=(W-L-R)/ks.length,y=t=>T+(m-t)/(2*m)*(H-T-B);
+  const s=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H},box);
+  [-m,-m/2,0,m/2,m].forEach(t=>{el("line",{x1:L,x2:W-R,y1:y(t),y2:y(t),stroke:t===0?"var(--ink-3)":"var(--rule)"},s);
+    el("text",{x:L-6,y:y(t)+4,"text-anchor":"end",class:"axis"},s).textContent=Math.round(t*100)+"%"});
+  const ys=ks.length>60?20:ks.length>25?10:5;
+  ks.forEach((k,i)=>{const val=yearly[k],x0=L+i*bw,w=Math.max(1,bw-(bw>4?2:0.5));
+    const y1=y(Math.max(0,val)),h=Math.max(1,Math.abs(y(val)-y(0)));
+    el("rect",{x:x0,y:y1,width:w,height:h,fill:val>=0?"var(--pos)":"var(--neg)",rx:Math.min(2,w/3)},s);
+    const hit=el("rect",{x:x0-1,y:T,width:bw+1,height:H-T-B,fill:"transparent"},s);
+    hit.onmousemove=e=>showTip(e,`<b>${k}</b><br><span class="m">${(val*100).toFixed(1)}% excess return</span>`);
+    hit.onmouseleave=hideTip;
+    if(k%ys===0)el("text",{x:x0+bw/2,y:H-7,"text-anchor":"middle",class:"axis"},s).textContent=k});
+}
+</script>
